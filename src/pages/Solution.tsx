@@ -3,10 +3,18 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 
+type Solution = {
+  id: string;
+  title: string;
+  description: string;
+  email: string;
+  created_at: string;
+}
+
 const Solution = () => {
   const { id } = useParams();
 
-  const { data: solution, isLoading } = useQuery({
+  const { data: solution, isLoading } = useQuery<Solution>({
     queryKey: ['solution', id],
     queryFn: async () => {
       const { data, error } = await supabase
