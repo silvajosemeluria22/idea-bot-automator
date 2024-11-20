@@ -18,7 +18,6 @@ const Solution = () => {
       if (error) throw error;
       return data;
     },
-    // Refresh data every 2 seconds while title is being generated
     refetchInterval: (data) => 
       data?.title === "Generating title..." ? 2000 : false,
   });

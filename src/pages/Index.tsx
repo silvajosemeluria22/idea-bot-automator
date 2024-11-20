@@ -114,14 +114,12 @@ const Index = () => {
 
           <button
             type="submit"
-            disabled={isLoading}
             className="w-full py-3 px-6 rounded-lg bg-primary text-white font-semibold
                      hover:bg-primary/90 transform hover:-translate-y-0.5 transition-all 
                      duration-300 focus:outline-none focus:ring-2 focus:ring-primary 
-                     focus:ring-offset-2 focus:ring-offset-[#1A1F2C] disabled:opacity-50
-                     disabled:cursor-not-allowed"
+                     focus:ring-offset-2 focus:ring-offset-[#1A1F2C]"
           >
-            {isLoading ? "Generating Solution..." : "Generate Solution"}
+            Generate Solution
           </button>
         </form>
 
