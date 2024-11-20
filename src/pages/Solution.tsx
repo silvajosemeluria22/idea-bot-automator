@@ -10,7 +10,7 @@ type Solution = {
   description: string;
   email: string;
   created_at: string;
-  automation_suggestion?: string;
+  automation_suggestion?: string | null;
 }
 
 const Solution = () => {
@@ -27,7 +27,6 @@ const Solution = () => {
 
       if (error) throw error;
 
-      // Get automation suggestion if not already present
       if (data && !data.automation_suggestion) {
         try {
           const { data: suggestionData } = await supabase.functions.invoke('generate-automation', {
