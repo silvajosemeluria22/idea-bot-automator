@@ -20,6 +20,7 @@ export type Database = {
           premium_time: number | null
           pro_price: number | null
           pro_time: number | null
+          replied: boolean | null
           title: string
         }
         Insert: {
@@ -32,6 +33,7 @@ export type Database = {
           premium_time?: number | null
           pro_price?: number | null
           pro_time?: number | null
+          replied?: boolean | null
           title: string
         }
         Update: {
@@ -44,6 +46,7 @@ export type Database = {
           premium_time?: number | null
           pro_price?: number | null
           pro_time?: number | null
+          replied?: boolean | null
           title?: string
         }
         Relationships: []

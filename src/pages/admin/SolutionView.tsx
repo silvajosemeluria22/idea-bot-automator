@@ -18,6 +18,7 @@ type Solution = {
   premium_time: number | null;
   pro_price: number | null;
   pro_time: number | null;
+  replied: boolean;
 }
 
 const SolutionView = () => {
@@ -59,6 +60,7 @@ const SolutionView = () => {
           premium_time: premiumTime ? parseInt(premiumTime) : null,
           pro_price: proPrice ? parseFloat(proPrice) : null,
           pro_time: proTime ? parseInt(proTime) : null,
+          replied: true
         })
         .eq('id', id);
 
@@ -68,6 +70,8 @@ const SolutionView = () => {
         title: "Success",
         description: "Solution updated successfully",
       });
+      
+      navigate("/admin/dashboard/solutions");
     } catch (error) {
       toast({
         title: "Error",
