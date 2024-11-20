@@ -18,6 +18,9 @@ const Solution = () => {
       if (error) throw error;
       return data;
     },
+    // Refresh data every 2 seconds while title is being generated
+    refetchInterval: (data) => 
+      data?.title === "Generating title..." ? 2000 : false,
   });
 
   if (isLoading) {
@@ -47,7 +50,16 @@ const Solution = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-3xl">
         <CardHeader>
-          <CardTitle className="text-2xl text-primary">{solution.title}</CardTitle>
+          <CardTitle className="text-2xl text-primary">
+            {solution.title === "Generating title..." ? (
+              <div className="flex items-center gap-2">
+                <span>Generating title</span>
+                <div className="animate-bounce">...</div>
+              </div>
+            ) : (
+              solution.title
+            )}
+          </CardTitle>
           <CardDescription className="text-gray-400">
             Submitted by: {solution.email}
           </CardDescription>

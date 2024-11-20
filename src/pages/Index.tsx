@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 const Index = () => {
   const [email, setEmail] = useState("");
   const [problem, setProblem] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -22,52 +21,54 @@ const Index = () => {
       return;
     }
 
-    setIsLoading(true);
+    // Create solution in database first with minimal data
+    const { data: solution, error: insertError } = await supabase
+      .from('solutions')
+      .insert([
+        {
+          title: "Generating title...", // Temporary title
+          description: problem,
+          email: email,
+        }
+      ])
+      .select()
+      .single();
 
+    if (insertError) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Redirect immediately after creating the initial record
+    navigate(`/solution/${solution.id}`);
+
+    // Generate title using OpenAI after redirect
     try {
-      // Generate title using OpenAI
       const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-title', {
         body: { description: problem }
       });
 
       if (titleError) throw titleError;
 
-      // Create solution in database
-      const { data: solution, error: insertError } = await supabase
+      // Update the solution with the generated title
+      await supabase
         .from('solutions')
-        .insert([
-          {
-            title: titleData.title,
-            description: problem,
-            email: email,
-          }
-        ])
-        .select()
-        .single();
+        .update({ title: titleData.title })
+        .eq('id', solution.id);
 
-      if (insertError) throw insertError;
-
-      toast({
-        title: "Success",
-        description: "Your solution request has been submitted successfully!",
-      });
-
-      // Redirect to the solution page
-      navigate(`/solution/${solution.id}`);
-
-      // Clear form
-      setEmail("");
-      setProblem("");
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+      // The user won't see this toast since they're on a different page
+      // The error state will be handled in the Solution page component
     }
+
+    // Clear form
+    setEmail("");
+    setProblem("");
   };
 
   return (
