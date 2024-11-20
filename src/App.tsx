@@ -10,6 +10,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Login from "./pages/admin/Login";
 import Metrics from "./pages/admin/Metrics";
 import Solutions from "./pages/admin/Solutions";
+import SolutionView from "./pages/admin/SolutionView";
 import Orders from "./pages/admin/Orders";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/admin/dashboard" element={<Dashboard />}>
               <Route path="metrics" element={<Metrics />} />
               <Route path="solutions" element={<Solutions />} />
+              <Route path="solutions/:id" element={<SolutionView />} />
               <Route path="orders" element={<Orders />} />
             </Route>
             <Route

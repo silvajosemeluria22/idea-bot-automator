@@ -11,6 +11,10 @@ type Solution = {
   email: string;
   created_at: string;
   automation_suggestion?: string | null;
+  premium_price?: number | null;
+  premium_time?: number | null;
+  pro_price?: number | null;
+  pro_time?: number | null;
 }
 
 const Solution = () => {
@@ -110,12 +114,21 @@ const Solution = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <Badge variant="default" className="bg-purple-500">Premium</Badge>
+                {solution.premium_price && (
+                  <span className="text-lg font-bold">${solution.premium_price}</span>
+                )}
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-400 text-sm text-center">
-                This could take up to 24 hours, comeback later or check your email for notification.
-              </p>
+              {solution.premium_time ? (
+                <p className="text-gray-300">
+                  Delivery time: {solution.premium_time} hours
+                </p>
+              ) : (
+                <p className="text-gray-400 text-sm text-center">
+                  This could take up to 24 hours, comeback later or check your email for notification.
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -123,12 +136,21 @@ const Solution = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <Badge variant="default" className="bg-blue-500">Pro</Badge>
+                {solution.pro_price && (
+                  <span className="text-lg font-bold">${solution.pro_price}</span>
+                )}
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-400 text-sm text-center">
-                This could take up to 24 hours, comeback later or check your email for notification.
-              </p>
+              {solution.pro_time ? (
+                <p className="text-gray-300">
+                  Delivery time: {solution.pro_time} hours
+                </p>
+              ) : (
+                <p className="text-gray-400 text-sm text-center">
+                  This could take up to 24 hours, comeback later or check your email for notification.
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

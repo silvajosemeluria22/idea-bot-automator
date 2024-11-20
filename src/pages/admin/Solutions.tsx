@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -8,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 
 const Solutions = () => {
   const { data: solutions, isLoading } = useQuery({
@@ -24,12 +26,16 @@ const Solutions = () => {
   });
 
   if (isLoading) {
-    return <div className="text-white">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-white">Solutions</h1>
+      <h1 className="text-2xl font-bold text-white">Solutions</h1>
       <div className="rounded-md border border-[#505050]">
         <Table>
           <TableHeader>
@@ -37,6 +43,7 @@ const Solutions = () => {
               <TableHead>Title</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Created At</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -46,6 +53,17 @@ const Solutions = () => {
                 <TableCell>{solution.email}</TableCell>
                 <TableCell>
                   {new Date(solution.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                  >
+                    <Link to={`/admin/dashboard/solutions/${solution.id}`}>
+                      View Details
+                    </Link>
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

@@ -16,6 +16,10 @@ export type Database = {
           description: string
           email: string
           id: string
+          premium_price: number | null
+          premium_time: number | null
+          pro_price: number | null
+          pro_time: number | null
           title: string
         }
         Insert: {
@@ -24,6 +28,10 @@ export type Database = {
           description: string
           email: string
           id?: string
+          premium_price?: number | null
+          premium_time?: number | null
+          pro_price?: number | null
+          pro_time?: number | null
           title: string
         }
         Update: {
@@ -32,6 +40,10 @@ export type Database = {
           description?: string
           email?: string
           id?: string
+          premium_price?: number | null
+          premium_time?: number | null
+          pro_price?: number | null
+          pro_time?: number | null
           title?: string
         }
         Relationships: []
