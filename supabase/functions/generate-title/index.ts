@@ -37,7 +37,7 @@ serve(async (req) => {
     })
 
     const data = await response.json()
-    const title = data.choices[0].message.content
+    const title = data.choices[0].message.content.trim()
 
     return new Response(JSON.stringify({ title }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
