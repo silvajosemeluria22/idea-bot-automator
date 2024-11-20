@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       solutions: {
         Row: {
+          automation_suggestion: string | null
           created_at: string
           description: string
           email: string
@@ -18,6 +19,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          automation_suggestion?: string | null
           created_at?: string
           description: string
           email: string
@@ -25,6 +27,7 @@ export type Database = {
           title: string
         }
         Update: {
+          automation_suggestion?: string | null
           created_at?: string
           description?: string
           email?: string
