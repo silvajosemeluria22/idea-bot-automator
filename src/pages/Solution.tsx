@@ -19,7 +19,7 @@ const Solution = () => {
       return data;
     },
     refetchInterval: (data) => 
-      data?.title === "Generating title..." ? 2000 : false,
+      data && data.title === "Generating title..." ? 2000 : false,
   });
 
   if (isLoading) {

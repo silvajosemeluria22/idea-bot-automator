@@ -7,7 +7,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -24,11 +23,11 @@ serve(async (req) => {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${Deno.env.get('openapikey')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4',
         messages: [
           {
             role: 'system',
@@ -51,12 +50,10 @@ serve(async (req) => {
     const data = await response.json()
     console.log('OpenAI API response:', data)
 
-    if (!data.choices?.[0]?.message?.content) {
-      console.error('Unexpected OpenAI API response format:', data)
-      throw new Error('Invalid response format from OpenAI API')
+    const title = data.choices?.[0]?.message?.content?.trim()
+    if (!title) {
+      throw new Error('No title generated from OpenAI API')
     }
-
-    const title = data.choices[0].message.content.trim()
 
     return new Response(JSON.stringify({ title }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
