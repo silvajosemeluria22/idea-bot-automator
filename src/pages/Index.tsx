@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [email, setEmail] = useState("");
   const [problem, setProblem] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +33,7 @@ const Index = () => {
       if (titleError) throw titleError;
 
       // Create solution in database
-      const { error: insertError } = await supabase
+      const { data: solution, error: insertError } = await supabase
         .from('solutions')
         .insert([
           {
@@ -39,7 +41,9 @@ const Index = () => {
             description: problem,
             email: email,
           }
-        ]);
+        ])
+        .select()
+        .single();
 
       if (insertError) throw insertError;
 
@@ -47,6 +51,9 @@ const Index = () => {
         title: "Success",
         description: "Your solution request has been submitted successfully!",
       });
+
+      // Redirect to the solution page
+      navigate(`/solution/${solution.id}`);
 
       // Clear form
       setEmail("");
