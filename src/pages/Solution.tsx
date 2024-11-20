@@ -76,7 +76,7 @@ const Solution = () => {
   }
 
   return (
-    <div className="min-h-screen p-4 max-w-5xl mx-auto space-y-6">
+    <div className="container min-h-screen p-4 max-w-5xl mx-auto space-y-6">
       <div className="space-y-4">
         <h1 className="text-4xl font-bold text-white">
           {solution.title === "Generating title..." ? (
@@ -92,7 +92,7 @@ const Solution = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2">
+        <Card className="md:col-span-2 bg-[#232323] border-[#505050]">
           <CardHeader>
             <div className="flex items-center justify-between">
               <Badge variant="default" className="bg-emerald-500">Free</Badge>
@@ -106,7 +106,7 @@ const Solution = () => {
         </Card>
 
         <div className="space-y-6">
-          <Card>
+          <Card className="bg-[#232323] border-[#505050]">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <Badge variant="default" className="bg-purple-500">Premium</Badge>
@@ -119,7 +119,7 @@ const Solution = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-[#232323] border-[#505050]">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <Badge variant="default" className="bg-blue-500">Pro</Badge>
