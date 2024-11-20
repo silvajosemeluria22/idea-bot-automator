@@ -15,6 +15,12 @@ serve(async (req) => {
   try {
     const { description } = await req.json()
 
+    if (!description) {
+      throw new Error('Description is required')
+    }
+
+    console.log('Calling OpenAI API with description:', description)
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -36,17 +42,34 @@ serve(async (req) => {
       }),
     })
 
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('OpenAI API error:', errorData)
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`)
+    }
+
     const data = await response.json()
+    console.log('OpenAI API response:', data)
+
+    if (!data.choices?.[0]?.message?.content) {
+      console.error('Unexpected OpenAI API response format:', data)
+      throw new Error('Invalid response format from OpenAI API')
+    }
+
     const title = data.choices[0].message.content.trim()
 
     return new Response(JSON.stringify({ title }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
-    console.error('Error:', error)
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    console.error('Error in generate-title function:', error)
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || 'An error occurred while generating the title'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    )
   }
 })
