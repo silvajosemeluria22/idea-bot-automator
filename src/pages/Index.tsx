@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [email, setEmail] = useState("");
   const [problem, setProblem] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !problem) {
@@ -18,10 +20,47 @@ const Index = () => {
       return;
     }
 
-    toast({
-      title: "Solution Generation Started",
-      description: "We'll email you once your solution is ready!",
-    });
+    setIsLoading(true);
+
+    try {
+      // Generate title using OpenAI
+      const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-title', {
+        body: { description: problem }
+      });
+
+      if (titleError) throw titleError;
+
+      // Create solution in database
+      const { error: insertError } = await supabase
+        .from('solutions')
+        .insert([
+          {
+            title: titleData.title,
+            description: problem,
+            email: email,
+          }
+        ]);
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: "Success",
+        description: "Your solution request has been submitted successfully!",
+      });
+
+      // Clear form
+      setEmail("");
+      setProblem("");
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -67,12 +106,14 @@ const Index = () => {
 
           <button
             type="submit"
+            disabled={isLoading}
             className="w-full py-3 px-6 rounded-lg bg-primary text-white font-semibold
                      hover:bg-primary/90 transform hover:-translate-y-0.5 transition-all 
                      duration-300 focus:outline-none focus:ring-2 focus:ring-primary 
-                     focus:ring-offset-2 focus:ring-offset-[#1A1F2C]"
+                     focus:ring-offset-2 focus:ring-offset-[#1A1F2C] disabled:opacity-50
+                     disabled:cursor-not-allowed"
           >
-            Generate Solution
+            {isLoading ? "Generating Solution..." : "Generate Solution"}
           </button>
         </form>
 
