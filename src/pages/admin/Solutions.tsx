@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { MessageSquare, MessageSquareCheck } from "lucide-react";
+import { MessageSquare, CheckSquare } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -56,7 +56,7 @@ const Solutions = () => {
             onClick={() => setFilter("replied")}
             className="flex items-center gap-2"
           >
-            <MessageSquareCheck className="h-4 w-4" />
+            <CheckSquare className="h-4 w-4" />
             Replied
           </Button>
         </div>
