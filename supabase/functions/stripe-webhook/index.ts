@@ -60,7 +60,23 @@ serve(async (req) => {
 
     console.log('Processing webhook event:', event.type, 'Event ID:', event.id);
     
-    // Log the stripe event
+    // First, find the order based on session ID
+    let orderId = null;
+    if (event.type === 'checkout.session.completed') {
+      const { data: order, error: orderError } = await supabaseClient
+        .from('orders')
+        .select('id')
+        .eq('stripe_session_id', event.data.object.id)
+        .single();
+
+      if (orderError) {
+        console.error('Error finding order:', orderError);
+      } else {
+        orderId = order.id;
+      }
+    }
+    
+    // Log the stripe event with order reference if found
     const { error: logError } = await supabaseClient
       .from('stripe_logs')
       .insert({
@@ -71,7 +87,8 @@ serve(async (req) => {
         status: event.data.object.status,
         amount: event.data.object.amount,
         metadata: event.data.object.metadata,
-        raw_event: event.data.object
+        raw_event: event.data.object,
+        order_id: orderId // Link to order if found
       });
 
     if (logError) {
