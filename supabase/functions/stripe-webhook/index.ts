@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import Stripe from "https://esm.sh/stripe@12.18.0?target=deno"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
 const stripe = new Stripe(Deno.env.get('stripe_development_secret_key') as string, {
   apiVersion: '2023-10-16',
@@ -27,7 +28,6 @@ serve(async (req) => {
     
     let event;
     try {
-      // Notice the change here: Using Stripe.createSubtleCryptoProvider() instead of stripe.createSubtleCryptoProvider()
       event = await stripe.webhooks.constructEventAsync(
         body,
         signature!,
@@ -37,7 +37,13 @@ serve(async (req) => {
       );
     } catch (err) {
       console.error('Error verifying webhook signature:', err);
-      return new Response(err.message, { status: 400 });
+      return new Response(
+        JSON.stringify({ error: 'Invalid signature' }), 
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
 
     console.log('Processing webhook event:', event.type, 'Event ID:', event.id);
@@ -67,7 +73,7 @@ serve(async (req) => {
         const paymentIntent = event.data.object;
         console.log('Processing payment_intent.created:', paymentIntent.id);
 
-        const { data: orders, error: orderError } = await supabaseClient
+        const { error: orderError } = await supabaseClient
           .from('orders')
           .update({
             stripe_payment_status: paymentIntent.status,
@@ -77,15 +83,12 @@ serve(async (req) => {
               last_updated: new Date().toISOString(),
             }
           })
-          .eq('payment_intent_id', paymentIntent.id)
-          .select();
+          .eq('payment_intent_id', paymentIntent.id);
 
         if (orderError) {
           console.error('Error updating order:', orderError);
           throw orderError;
         }
-
-        console.log('Updated orders with payment intent status:', orders?.length);
         break;
       }
 
@@ -111,8 +114,6 @@ serve(async (req) => {
           console.error('Error updating order:', updateError);
           throw updateError;
         }
-
-        console.log('Updated order status to failed');
         break;
       }
 
@@ -139,8 +140,6 @@ serve(async (req) => {
           console.error('Error updating order:', updateError);
           throw updateError;
         }
-
-        console.log('Successfully updated order with completed session');
         break;
       }
 
@@ -148,17 +147,20 @@ serve(async (req) => {
         console.log('Unhandled event type:', event.type);
     }
 
-    return new Response(JSON.stringify({ received: true }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({ received: true }), 
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200 
+      }
+    );
   } catch (error) {
     console.error('Error processing webhook:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 500 
       }
     );
   }
