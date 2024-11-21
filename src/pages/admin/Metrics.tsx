@@ -24,12 +24,11 @@ const Metrics = () => {
         .from('orders')
         .select('*', { count: 'exact', head: true });
 
-      // Get revenue from successful orders
+      // Get revenue from paid orders
       const { data: revenueData } = await supabase
         .from('orders')
         .select('amount')
-        .eq('stripe_payment_status', 'succeeded')
-        .eq('stripe_payment_captured', true);
+        .eq('stripe_payment_status', 'paid');
 
       const totalRevenue = revenueData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
@@ -159,7 +158,7 @@ const Metrics = () => {
                         <TableRow key={order.id}>
                           <TableCell>{order.solution?.title}</TableCell>
                           <TableCell>{order.customer_email}</TableCell>
-                          <TableCell>${(Number(order.amount) / 100).toLocaleString()}</TableCell>
+                          <TableCell>${order.amount.toLocaleString()}</TableCell>
                           <TableCell>{order.stripe_payment_status}</TableCell>
                         </TableRow>
                       ))}
