@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/useDebounce";
+import type { Solution, Order } from "@/integrations/supabase/types";
 
 const Metrics = () => {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
 
-  // Fetch KPI data
   const { data: kpiData } = useQuery({
     queryKey: ['kpi-data'],
     queryFn: async () => {
@@ -40,13 +40,12 @@ const Metrics = () => {
     }
   });
 
-  // Search functionality
   const { data: searchResults } = useQuery({
     queryKey: ['search', debouncedSearch],
     queryFn: async () => {
       if (!debouncedSearch) return { solutions: [], orders: [] };
 
-      const [solutions, orders] = await Promise.all([
+      const [solutionsResult, ordersResult] = await Promise.all([
         supabase
           .from('solutions')
           .select('*')
@@ -60,8 +59,8 @@ const Metrics = () => {
       ]);
 
       return {
-        solutions: solutions.data || [],
-        orders: orders.data || []
+        solutions: (solutionsResult.data || []) as Solution[],
+        orders: (ordersResult.data || []) as Order[]
       };
     },
     enabled: debouncedSearch.length > 0

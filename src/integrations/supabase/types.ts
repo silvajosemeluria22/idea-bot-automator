@@ -81,5 +81,7 @@ export type Database = {
 
 // Export table types for convenience
 export type Solution = Database['public']['Tables']['solutions']['Row']
-export type Order = Database['public']['Tables']['orders']['Row']
+export type Order = Database['public']['Tables']['orders']['Row'] & {
+  solution: { title: string }
+}
 export type StripeLog = Database['public']['Tables']['stripe_logs']['Row']

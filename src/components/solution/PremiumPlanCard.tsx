@@ -9,7 +9,7 @@ import type { Solution } from "@/integrations/supabase/types";
 
 type PremiumPlanProps = {
   paidOrder: any;
-  solution: Pick<Solution, 'id' | 'premium_price' | 'premium_time' | 'whatsapp_number'>;
+  solution: Solution;
   isProcessing: boolean;
   whatsapp: string;
   onWhatsappChange: (value: string) => void;

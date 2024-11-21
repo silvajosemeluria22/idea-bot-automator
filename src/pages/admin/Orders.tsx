@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrderRow } from "@/components/admin/OrderRow";
-import { Order } from "@/types/order";
+import { Order } from "@/integrations/supabase/types";
 
 const Orders = () => {
   const { data: orders, isLoading } = useQuery({
@@ -69,7 +69,7 @@ const Orders = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders.map((order) => (
+            {orders?.map((order) => (
               <OrderRow key={order.id} order={order} />
             ))}
           </TableBody>
