@@ -25,7 +25,6 @@ const Orders = () => {
 
       if (error) throw error;
       
-      // Transform the data to match our Order type
       return (data || []).map(order => ({
         ...order,
         solution: { title: order.solution?.[0]?.title || '' }
@@ -69,6 +68,7 @@ const Orders = () => {
               <TableHead>Solution</TableHead>
               <TableHead>Customer</TableHead>
               <TableHead>Amount</TableHead>
+              <TableHead>Plan</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>

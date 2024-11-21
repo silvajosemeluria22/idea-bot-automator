@@ -22,6 +22,17 @@ export const OrderRow = ({ order }: OrderRowProps) => {
     }
   };
 
+  const getPlanBadgeVariant = (plan: string | null) => {
+    switch (plan) {
+      case 'premium':
+        return 'secondary';
+      case 'pro':
+        return 'default';
+      default:
+        return 'outline';
+    }
+  };
+
   return (
     <TableRow key={order.id} className="bg-[#232323]">
       <TableCell>
@@ -34,6 +45,13 @@ export const OrderRow = ({ order }: OrderRowProps) => {
           style: 'currency',
           currency: order.currency.toUpperCase(),
         }).format(order.amount)}
+      </TableCell>
+      <TableCell>
+        <Badge
+          variant={getPlanBadgeVariant(order.plan_type)}
+        >
+          {order.plan_type || 'N/A'}
+        </Badge>
       </TableCell>
       <TableCell className="space-y-1">
         <Badge
