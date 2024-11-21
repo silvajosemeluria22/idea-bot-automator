@@ -45,7 +45,31 @@ serve(async (req) => {
   try {
     console.log('Processing webhook event:', event.type, 'Event ID:', event.id);
     
-    // Log the event first
+    // Find the corresponding order based on the session ID or payment intent ID
+    let orderId = null;
+    if (event.data.object.client_reference_id) {
+      const { data: order } = await supabaseClient
+        .from('orders')
+        .select('id')
+        .eq('stripe_session_id', event.data.object.client_reference_id)
+        .single();
+      
+      if (order) {
+        orderId = order.id;
+      }
+    } else if (event.data.object.payment_intent) {
+      const { data: order } = await supabaseClient
+        .from('orders')
+        .select('id')
+        .eq('payment_intent_id', event.data.object.payment_intent)
+        .single();
+      
+      if (order) {
+        orderId = order.id;
+      }
+    }
+
+    // Log the event with the order ID if found
     const { error: logError } = await supabaseClient
       .from('stripe_logs')
       .insert({
@@ -53,6 +77,7 @@ serve(async (req) => {
         event_id: event.id,
         payment_intent_id: event.data.object.payment_intent || event.data.object.id,
         session_id: event.data.object.client_reference_id,
+        order_id: orderId,
         status: event.data.object.status,
         amount: event.data.object.amount,
         metadata: event.data.object.metadata,
@@ -72,26 +97,26 @@ serve(async (req) => {
         const paymentIntent = event.data.object;
         console.log('Payment intent succeeded:', paymentIntent.id);
         
-        // Update order status
-        const { error } = await supabaseClient
-          .from('orders')
-          .update({ 
-            stripe_payment_status: 'succeeded',
-            stripe_payment_captured: true,
-            payment_intent_id: paymentIntent.id,
-            metadata: {
-              payment_status: 'succeeded',
-              captured: true,
-              last_updated: new Date().toISOString(),
-            }
-          })
-          .eq('stripe_session_id', paymentIntent.metadata.session_id);
+        if (orderId) {
+          const { error } = await supabaseClient
+            .from('orders')
+            .update({ 
+              stripe_payment_status: 'succeeded',
+              stripe_payment_captured: true,
+              payment_intent_id: paymentIntent.id,
+              metadata: {
+                payment_status: 'succeeded',
+                captured: true,
+                last_updated: new Date().toISOString(),
+              }
+            })
+            .eq('id', orderId);
 
-        if (error) {
-          console.error('Error updating order:', error);
-          throw error;
+          if (error) {
+            console.error('Error updating order:', error);
+            throw error;
+          }
         }
-        
         break;
       }
       
@@ -99,25 +124,26 @@ serve(async (req) => {
         const paymentIntent = event.data.object;
         console.log('Payment intent failed:', paymentIntent.id);
         
-        const { error } = await supabaseClient
-          .from('orders')
-          .update({ 
-            stripe_payment_status: 'failed',
-            stripe_payment_captured: false,
-            payment_intent_id: paymentIntent.id,
-            metadata: {
-              payment_status: 'failed',
-              captured: false,
-              last_updated: new Date().toISOString(),
-            }
-          })
-          .eq('stripe_session_id', paymentIntent.metadata.session_id);
+        if (orderId) {
+          const { error } = await supabaseClient
+            .from('orders')
+            .update({ 
+              stripe_payment_status: 'failed',
+              stripe_payment_captured: false,
+              payment_intent_id: paymentIntent.id,
+              metadata: {
+                payment_status: 'failed',
+                captured: false,
+                last_updated: new Date().toISOString(),
+              }
+            })
+            .eq('id', orderId);
 
-        if (error) {
-          console.error('Error updating order:', error);
-          throw error;
+          if (error) {
+            console.error('Error updating order:', error);
+            throw error;
+          }
         }
-        
         break;
       }
     }
