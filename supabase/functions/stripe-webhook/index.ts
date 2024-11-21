@@ -29,6 +29,7 @@ serve(async (req) => {
   
   let event;
   try {
+    console.log('Received webhook. Verifying signature...');
     event = await stripe.webhooks.constructEventAsync(
       body,
       signature!,
@@ -42,7 +43,7 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Processing webhook event:', event.type);
+    console.log('Processing webhook event:', event.type, 'Event ID:', event.id);
     
     // Log the event first
     const { error: logError } = await supabaseClient
@@ -62,6 +63,8 @@ serve(async (req) => {
       console.error('Error logging stripe event:', logError);
       throw logError;
     }
+
+    console.log('Successfully logged event to stripe_logs');
 
     // Handle specific events
     switch (event.type) {
