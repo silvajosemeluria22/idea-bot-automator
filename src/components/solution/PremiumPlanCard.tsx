@@ -112,7 +112,7 @@ export const PremiumPlanCard = ({
           ) : (
             <div className="flex items-center justify-center h-[200px]">
               <p className="text-white">
-                Thank you, we are working on this, you will be notified by email once is completed.
+                Thank you, we are working on this, you will be notified by email and whatsapp once is completed.
               </p>
             </div>
           )}
