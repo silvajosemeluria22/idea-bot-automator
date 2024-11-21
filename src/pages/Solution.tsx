@@ -41,7 +41,7 @@ const Solution = () => {
     enabled: !!id,
     refetchInterval: (data) => {
       if (!data) return 2000;
-      if (data.title !== "Generating title..." && data.automation_suggestion) {
+      if (data?.title !== "Generating title..." && data?.automation_suggestion) {
         return false;
       }
       return 2000;
@@ -98,8 +98,8 @@ const Solution = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="space-y-4">
-          <h1 className="text-3xl font-bold text-white">{solution.title}</h1>
-          <p className="text-gray-400">{solution.email}</p>
+          <h1 className="text-3xl font-bold text-white">{solution?.title}</h1>
+          <p className="text-gray-400">{solution?.email}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-6">
@@ -107,7 +107,7 @@ const Solution = () => {
           <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
             <div className="text-emerald-500 mb-4">Free</div>
             <p className="text-white whitespace-pre-wrap">
-              {solution.automation_suggestion || (
+              {solution?.automation_suggestion || (
                 <div className="flex items-center justify-center h-40">
                   <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
                 </div>
@@ -119,7 +119,7 @@ const Solution = () => {
             {/* Premium Plan */}
             <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
               <div className="text-emerald-500 mb-4">Premium</div>
-              {solution.premium_price && solution.premium_time ? (
+              {solution?.premium_price && solution?.premium_time ? (
                 <div className="space-y-4">
                   <p className="text-white">
                     A more detailed solution that includes a comprehensive diagram illustrating the solution architecture, and a step-by-step action plan for implementation. This package is designed for clients who have the resources to implement the solution on their own but need a detailed roadmap.
@@ -149,7 +149,7 @@ const Solution = () => {
             {/* Pro Plan */}
             <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
               <div className="text-emerald-500 mb-4">Pro</div>
-              {solution.pro_price && solution.pro_time ? (
+              {solution?.pro_price && solution?.pro_time ? (
                 <div className="space-y-4">
                   <p className="text-white">
                     The most comprehensive offering, this package includes not only the detailed planning and diagrams of the Premium Solution but also full implementation services provided by our team. This hands-off approach is perfect for clients who prefer to have experts handle the entire process.
