@@ -17,6 +17,18 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const getOrderStatus = (stripeEvent: string, status: string): string => {
+  switch (stripeEvent) {
+    case 'checkout.session.completed':
+      return status === 'complete' ? 'paid' : 'pending';
+    case 'payment_intent.payment_failed':
+    case 'charge.failed':
+      return 'failed';
+    default:
+      return 'pending';
+  }
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -69,45 +81,25 @@ serve(async (req) => {
 
     // Handle different event types
     switch (event.type) {
-      case 'payment_intent.created': {
-        const paymentIntent = event.data.object;
-        console.log('Processing payment_intent.created:', paymentIntent.id);
+      case 'checkout.session.completed': {
+        const session = event.data.object;
+        console.log('Processing checkout.session.completed:', session.id);
 
-        const { error: orderError } = await supabaseClient
-          .from('orders')
-          .update({
-            stripe_payment_status: paymentIntent.status,
-            metadata: {
-              payment_status: paymentIntent.status,
-              last_updated: new Date().toISOString(),
-            }
-          })
-          .eq('payment_intent_id', paymentIntent.id);
-
-        if (orderError) {
-          console.error('Error updating order:', orderError);
-          throw orderError;
-        }
-        break;
-      }
-
-      case 'charge.failed': {
-        const charge = event.data.object;
-        console.log('Processing charge.failed:', charge.payment_intent);
-
+        const orderStatus = getOrderStatus(event.type, session.status);
         const { error: updateError } = await supabaseClient
           .from('orders')
           .update({
-            stripe_payment_status: 'failed',
-            stripe_payment_captured: false,
+            stripe_payment_status: orderStatus,
+            payment_intent_id: session.payment_intent,
+            stripe_payment_captured: orderStatus === 'paid',
             metadata: {
-              payment_status: 'failed',
-              failure_message: charge.failure_message,
-              failure_code: charge.failure_code,
+              payment_status: orderStatus,
+              payment_intent: session.payment_intent,
+              captured: orderStatus === 'paid',
               last_updated: new Date().toISOString(),
             }
           })
-          .eq('payment_intent_id', charge.payment_intent);
+          .eq('stripe_session_id', session.id);
 
         if (updateError) {
           console.error('Error updating order:', updateError);
@@ -116,24 +108,24 @@ serve(async (req) => {
         break;
       }
 
-      case 'checkout.session.completed': {
-        const session = event.data.object;
-        console.log('Processing checkout.session.completed:', session.id);
+      case 'payment_intent.payment_failed':
+      case 'charge.failed': {
+        const paymentIntent = event.data.object.payment_intent || event.data.object.id;
+        console.log('Processing payment failure:', paymentIntent);
 
         const { error: updateError } = await supabaseClient
           .from('orders')
           .update({
-            stripe_payment_status: session.payment_status,
-            payment_intent_id: session.payment_intent,
-            stripe_payment_captured: session.payment_status === 'paid',
+            stripe_payment_status: 'failed',
+            stripe_payment_captured: false,
             metadata: {
-              payment_status: session.payment_status,
-              payment_intent: session.payment_intent,
-              captured: session.payment_status === 'paid',
+              payment_status: 'failed',
+              failure_message: event.data.object.failure_message,
+              failure_code: event.data.object.failure_code,
               last_updated: new Date().toISOString(),
             }
           })
-          .eq('stripe_session_id', session.id);
+          .eq('payment_intent_id', paymentIntent);
 
         if (updateError) {
           console.error('Error updating order:', updateError);

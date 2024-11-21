@@ -11,16 +11,11 @@ interface OrderRowProps {
 export const OrderRow = ({ order }: OrderRowProps) => {
   const getStatusBadgeVariant = (status: string | null) => {
     switch (status) {
-      case 'succeeded':
-      case 'completed':
+      case 'paid':
         return 'default';
-      case 'processing':
-      case 'requires_payment_method':
-      case 'requires_confirmation':
-      case 'requires_action':
+      case 'pending':
         return 'secondary';
-      case 'expired':
-      case 'canceled':
+      case 'failed':
         return 'destructive';
       default:
         return 'outline';
@@ -46,7 +41,7 @@ export const OrderRow = ({ order }: OrderRowProps) => {
         >
           {order.stripe_payment_status || 'pending'}
         </Badge>
-        {order.stripe_payment_status === 'succeeded' && (
+        {order.stripe_payment_status === 'paid' && (
           <Badge variant={order.stripe_payment_captured ? 'default' : 'destructive'}>
             {order.stripe_payment_captured ? 'Captured' : 'Not Captured'}
           </Badge>
