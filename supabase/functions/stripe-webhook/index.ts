@@ -36,11 +36,12 @@ serve(async (req) => {
       case 'checkout.session.completed': {
         const session = event.data.object;
         
-        // Update order status
+        // Update order status and add payment intent ID
         const { error } = await supabaseClient
           .from('orders')
           .update({ 
             stripe_payment_status: 'completed',
+            payment_intent_id: session.payment_intent,
             metadata: {
               ...session,
               payment_status: session.payment_status,

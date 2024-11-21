@@ -17,6 +17,7 @@ export type Database = {
           customer_email: string
           id: string
           metadata: Json | null
+          payment_intent_id: string | null
           solution_id: string
           stripe_payment_status: string | null
           stripe_session_id: string | null
@@ -29,6 +30,7 @@ export type Database = {
           customer_email: string
           id?: string
           metadata?: Json | null
+          payment_intent_id?: string | null
           solution_id: string
           stripe_payment_status?: string | null
           stripe_session_id?: string | null
@@ -41,6 +43,7 @@ export type Database = {
           customer_email?: string
           id?: string
           metadata?: Json | null
+          payment_intent_id?: string | null
           solution_id?: string
           stripe_payment_status?: string | null
           stripe_session_id?: string | null
