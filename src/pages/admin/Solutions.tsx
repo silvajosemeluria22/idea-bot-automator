@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
 
 type FilterType = "all" | "need_reply" | "replied";
@@ -23,7 +24,14 @@ const Solutions = () => {
     queryFn: async () => {
       const query = supabase
         .from("solutions")
-        .select("*")
+        .select(`
+          *,
+          orders (
+            stripe_payment_status,
+            amount,
+            currency
+          )
+        `)
         .order("created_at", { ascending: false });
 
       if (filter !== "all") {
@@ -35,6 +43,24 @@ const Solutions = () => {
       return data;
     },
   });
+
+  const getStatusBadgeVariant = (status: string | null) => {
+    switch (status) {
+      case 'succeeded':
+      case 'completed':
+        return 'default';
+      case 'processing':
+      case 'requires_payment_method':
+      case 'requires_confirmation':
+      case 'requires_action':
+        return 'secondary';
+      case 'expired':
+      case 'canceled':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
 
   if (isLoading) {
     return (
@@ -82,6 +108,7 @@ const Solutions = () => {
               <TableHead>Title</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Created At</TableHead>
+              <TableHead>Payment Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -92,6 +119,25 @@ const Solutions = () => {
                 <TableCell>{solution.email}</TableCell>
                 <TableCell>
                   {new Date(solution.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {solution.orders && solution.orders[0] ? (
+                    <div className="space-y-1">
+                      <Badge
+                        variant={getStatusBadgeVariant(solution.orders[0].stripe_payment_status)}
+                      >
+                        {solution.orders[0].stripe_payment_status || 'pending'}
+                      </Badge>
+                      <div className="text-sm text-gray-400">
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: solution.orders[0].currency.toUpperCase(),
+                        }).format(solution.orders[0].amount)}
+                      </div>
+                    </div>
+                  ) : (
+                    <Badge variant="outline">No payment</Badge>
+                  )}
                 </TableCell>
                 <TableCell className="space-x-2">
                   <Button
