@@ -27,10 +27,16 @@ const Solution = () => {
         .eq("id", id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching solution:", error);
+        throw error;
+      }
+
+      console.log("Fetched solution:", data); // Debug log
       return data as Solution;
     },
     enabled: !!id,
+    retry: 1, // Retry once if the query fails
   });
 
   if (isLoading) {
@@ -44,7 +50,7 @@ const Solution = () => {
   if (!solution) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-white mb-4">Solution not found</h1>
+        <h1 className="text-2xl font-bold text-white mb-4">Loading solution...</h1>
       </div>
     );
   }
