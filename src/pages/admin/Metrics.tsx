@@ -5,30 +5,50 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/useDebounce";
+import { DateRange } from "react-day-picker";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { Solution, Order } from "@/types/order";
 
 const Metrics = () => {
   const [search, setSearch] = useState("");
+  const [date, setDate] = useState<DateRange | undefined>();
   const debouncedSearch = useDebounce(search, 300);
 
   const { data: kpiData } = useQuery({
-    queryKey: ['kpi-data'],
+    queryKey: ['kpi-data', date],
     queryFn: async () => {
-      // Get solutions count
-      const { count: solutionsCount } = await supabase
-        .from('solutions')
-        .select('*', { count: 'exact', head: true });
+      let solutionsQuery = supabase.from('solutions').select('*', { count: 'exact', head: true });
+      let ordersQuery = supabase.from('orders').select('*', { count: 'exact', head: true });
+      let revenueQuery = supabase.from('orders').select('amount').eq('stripe_payment_status', 'paid');
 
-      // Get orders count
-      const { count: ordersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true });
+      // Apply date filters if set
+      if (date?.from) {
+        solutionsQuery = solutionsQuery.gte('created_at', date.from.toISOString());
+        ordersQuery = ordersQuery.gte('created_at', date.from.toISOString());
+        revenueQuery = revenueQuery.gte('created_at', date.from.toISOString());
+      }
+      if (date?.to) {
+        const endDate = new Date(date.to);
+        endDate.setHours(23, 59, 59, 999);
+        solutionsQuery = solutionsQuery.lte('created_at', endDate.toISOString());
+        ordersQuery = ordersQuery.lte('created_at', endDate.toISOString());
+        revenueQuery = revenueQuery.lte('created_at', endDate.toISOString());
+      }
 
-      // Get revenue from paid orders
-      const { data: revenueData } = await supabase
-        .from('orders')
-        .select('amount')
-        .eq('stripe_payment_status', 'paid');
+      const [{ count: solutionsCount }, { count: ordersCount }, { data: revenueData }] = await Promise.all([
+        solutionsQuery,
+        ordersQuery,
+        revenueQuery
+      ]);
 
       const totalRevenue = revenueData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
@@ -41,25 +61,38 @@ const Metrics = () => {
   });
 
   const { data: searchResults } = useQuery({
-    queryKey: ['search', debouncedSearch],
+    queryKey: ['search', debouncedSearch, date],
     queryFn: async () => {
       if (!debouncedSearch) return { solutions: [], orders: [] };
 
-      const [solutionsResult, ordersResult] = await Promise.all([
-        supabase
-          .from('solutions')
-          .select('*')
-          .or(`title.ilike.%${debouncedSearch}%,description.ilike.%${debouncedSearch}%`)
-          .limit(5),
-        supabase
-          .from('orders')
-          .select(`
-            *,
-            solution:solutions(title)
-          `)
-          .or(`customer_email.ilike.%${debouncedSearch}%,solution_id.eq.${debouncedSearch}`)
-          .limit(5)
-      ]);
+      let solutionsQuery = supabase
+        .from('solutions')
+        .select('*')
+        .or(`title.ilike.%${debouncedSearch}%,description.ilike.%${debouncedSearch}%`)
+        .limit(5);
+
+      let ordersQuery = supabase
+        .from('orders')
+        .select(`
+          *,
+          solution:solutions(title)
+        `)
+        .or(`customer_email.ilike.%${debouncedSearch}%,solution_id.eq.${debouncedSearch}`)
+        .limit(5);
+
+      // Apply date filters if set
+      if (date?.from) {
+        solutionsQuery = solutionsQuery.gte('created_at', date.from.toISOString());
+        ordersQuery = ordersQuery.gte('created_at', date.from.toISOString());
+      }
+      if (date?.to) {
+        const endDate = new Date(date.to);
+        endDate.setHours(23, 59, 59, 999);
+        solutionsQuery = solutionsQuery.lte('created_at', endDate.toISOString());
+        ordersQuery = ordersQuery.lte('created_at', endDate.toISOString());
+      }
+
+      const [solutionsResult, ordersResult] = await Promise.all([solutionsQuery, ordersQuery]);
 
       return {
         solutions: (solutionsResult.data || []) as Solution[],
@@ -75,6 +108,43 @@ const Metrics = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold text-white">Metrics</h1>
+
+      <div className="flex items-center gap-4">
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-[280px] justify-start text-left font-normal bg-[#232323] border-[#505050]",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date?.from ? (
+                date.to ? (
+                  <>
+                    {format(date.from, "LLL dd, y")} - {format(date.to, "LLL dd, y")}
+                  </>
+                ) : (
+                  format(date.from, "LLL dd, y")
+                )
+              ) : (
+                <span>Pick a date range</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              initialFocus
+              mode="range"
+              defaultMonth={date?.from}
+              selected={date}
+              onSelect={setDate}
+              numberOfMonths={2}
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
       
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="bg-[#232323] border-[#505050]">
