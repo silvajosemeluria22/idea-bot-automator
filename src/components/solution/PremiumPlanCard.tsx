@@ -44,6 +44,7 @@ export const PremiumPlanCard = ({
         description: "WhatsApp number saved successfully",
       });
     } catch (error) {
+      console.error('Error saving WhatsApp number:', error);
       toast({
         title: "Error",
         description: "Failed to save WhatsApp number",

@@ -2,21 +2,10 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { PremiumPlanCard } from "@/components/solution/PremiumPlanCard";
 import { ProPlanCard } from "@/components/solution/ProPlanCard";
-
-type Solution = {
-  id: string;
-  title: string;
-  description: string;
-  email: string;
-  automation_suggestion: string | null;
-  premium_price: number | null;
-  premium_time: number | null;
-  pro_price: number | null;
-  pro_time: number | null;
-};
+import type { Solution } from "@/integrations/supabase/types";
 
 const Solution = () => {
   const { id } = useParams();
