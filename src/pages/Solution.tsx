@@ -150,14 +150,12 @@ const Solution = () => {
                 onCheckout={handleCheckout}
               />
             )}
-            {!hasPremiumOrder && (
-              <ProPlanCard 
-                solution={solution} 
-                paidOrder={hasProOrder ? paidOrders?.find(order => order.amount === (solution.pro_price || 0) - (solution.discount || 0)) : undefined}
-                whatsapp={whatsapp}
-                onWhatsappChange={setWhatsapp}
-              />
-            )}
+            <ProPlanCard 
+              solution={solution} 
+              paidOrder={hasProOrder ? paidOrders?.find(order => order.amount === (solution.pro_price || 0) - (solution.discount || 0)) : undefined}
+              whatsapp={whatsapp}
+              onWhatsappChange={setWhatsapp}
+            />
           </div>
         </div>
       </div>
