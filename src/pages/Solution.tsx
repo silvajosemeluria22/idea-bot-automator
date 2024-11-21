@@ -40,7 +40,6 @@ const Solution = () => {
         throw error;
       }
 
-      // Set initial whatsapp number if exists
       if (data.whatsapp_number) {
         setWhatsapp(data.whatsapp_number);
       }
@@ -149,15 +148,17 @@ const Solution = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <PremiumPlanCard
-              paidOrder={paidOrder}
-              solution={solution}
-              isProcessing={isProcessing}
-              whatsapp={whatsapp}
-              onWhatsappChange={setWhatsapp}
-              onCheckout={handleCheckout}
-            />
-            <ProPlanCard solution={solution} />
+            {solution && (
+              <PremiumPlanCard
+                paidOrder={paidOrder}
+                solution={solution}
+                isProcessing={isProcessing}
+                whatsapp={whatsapp}
+                onWhatsappChange={setWhatsapp}
+                onCheckout={handleCheckout}
+              />
+            )}
+            {solution && <ProPlanCard solution={solution} />}
           </div>
         </div>
       </div>
