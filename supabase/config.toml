@@ -1,7 +1,30 @@
 project_id = "odqxxyuqvjhdxrmdeaer"
 
-[functions.create-checkout]
-verify_jwt = false
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
 
-[functions.refresh-payment]
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+
+[auth]
+enabled = true
+
+[realtime]
+enabled = true
+
+[edge_functions]
+[edge_functions.refresh-transactions]
 verify_jwt = false
