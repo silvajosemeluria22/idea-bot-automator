@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
 
 type Solution = {
   id: string;
@@ -19,6 +21,7 @@ type Solution = {
 const Solution = () => {
   const { id } = useParams();
   const { toast } = useToast();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const { data: solution, isLoading } = useQuery({
     queryKey: ["solution", id],
@@ -50,6 +53,7 @@ const Solution = () => {
 
   const handleCheckout = async () => {
     if (!solution) return;
+    setIsProcessing(true);
 
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
@@ -68,6 +72,7 @@ const Solution = () => {
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
+      setIsProcessing(false);
       toast({
         title: "Error",
         description: "Failed to initiate checkout. Please try again.",
@@ -127,10 +132,18 @@ const Solution = () => {
                   <p className="text-emerald-500">Price: ${solution.premium_price}</p>
                   <p className="text-gray-400">Delivery time: {solution.premium_time} hours</p>
                   <Button 
-                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
                     onClick={handleCheckout}
+                    disabled={isProcessing}
                   >
-                    Get the blueprint
+                    {isProcessing ? (
+                      <div className="flex items-center justify-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Processing...</span>
+                      </div>
+                    ) : (
+                      "Get the blueprint"
+                    )}
                   </Button>
                 </div>
               ) : (
