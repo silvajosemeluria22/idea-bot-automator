@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
 
 type Solution = {
   id: string;
@@ -87,13 +88,28 @@ const Solution = () => {
             {/* Premium Plan */}
             <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
               <div className="text-emerald-500 mb-4">Premium</div>
-              <div className="flex items-center justify-center h-40">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
-              </div>
-              <p className="text-gray-500 text-center mt-4">
-                This could take up to 24 hours, comeback later<br />
-                or check your email for notification.
-              </p>
+              {solution.premium_price && solution.premium_time ? (
+                <div className="space-y-4">
+                  <p className="text-white">
+                    A more detailed solution that includes a comprehensive diagram illustrating the solution architecture, and a step-by-step action plan for implementation. This package is designed for clients who have the resources to implement the solution on their own but need a detailed roadmap.
+                  </p>
+                  <p className="text-emerald-500">Price: ${solution.premium_price}</p>
+                  <p className="text-gray-400">Delivery time: {solution.premium_time} hours</p>
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                    Get the blueprint
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-center h-40">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
+                  </div>
+                  <p className="text-gray-500 text-center mt-4">
+                    This could take up to 24 hours, comeback later<br />
+                    or check your email for notification.
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Pro Plan */}
