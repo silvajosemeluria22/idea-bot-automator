@@ -43,6 +43,24 @@ const Orders = () => {
     },
   });
 
+  const getStatusBadgeVariant = (status: string | null) => {
+    switch (status) {
+      case 'succeeded':
+      case 'completed':
+        return 'default';
+      case 'processing':
+      case 'requires_payment_method':
+      case 'requires_confirmation':
+      case 'requires_action':
+        return 'secondary';
+      case 'expired':
+      case 'canceled':
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -99,15 +117,9 @@ const Orders = () => {
                 </TableCell>
                 <TableCell>
                   <Badge
-                    variant={
-                      order.stripe_payment_status === 'completed'
-                        ? 'success'
-                        : order.stripe_payment_status === 'pending'
-                        ? 'warning'
-                        : 'destructive'
-                    }
+                    variant={getStatusBadgeVariant(order.stripe_payment_status)}
                   >
-                    {order.stripe_payment_status || 'unknown'}
+                    {order.stripe_payment_status || 'pending'}
                   </Badge>
                 </TableCell>
                 <TableCell>
