@@ -8,7 +8,10 @@ export interface Order {
   currency: string;
   customer_email: string;
   created_at: string;
-  solution?: {
+  updated_at: string;
+  metadata: any;
+  payment_intent_id: string | null;
+  solution: {
     title: string;
   };
 }

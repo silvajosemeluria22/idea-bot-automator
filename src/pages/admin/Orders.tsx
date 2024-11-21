@@ -25,7 +25,7 @@ const Orders = () => {
         .from("orders")
         .select(`
           *,
-          solution:solutions(title)
+          solution:solutions!inner(title)
         `)
         .order("created_at", { ascending: false });
 
