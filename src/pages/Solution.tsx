@@ -37,6 +37,14 @@ const Solution = () => {
       return data as Solution;
     },
     enabled: !!id,
+    refetchInterval: (data) => {
+      // If we have both title and automation_suggestion, stop polling
+      if (data?.title && data?.title !== "Generating title..." && data?.automation_suggestion) {
+        return false;
+      }
+      // Otherwise, refetch every 2 seconds
+      return 2000;
+    },
   });
 
   if (isLoading) {
@@ -79,7 +87,13 @@ const Solution = () => {
           {/* Free Plan */}
           <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
             <div className="text-emerald-500 mb-4">Free</div>
-            <p className="text-white whitespace-pre-wrap">{solution.automation_suggestion}</p>
+            <p className="text-white whitespace-pre-wrap">
+              {solution.automation_suggestion || (
+                <div className="flex items-center justify-center h-40">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
+                </div>
+              )}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
