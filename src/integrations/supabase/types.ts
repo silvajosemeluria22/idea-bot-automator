@@ -70,6 +70,7 @@ export type Database = {
           automation_suggestion: string | null
           created_at: string
           description: string
+          discount: number | null
           email: string
           id: string
           premium_price: number | null
@@ -84,6 +85,7 @@ export type Database = {
           automation_suggestion?: string | null
           created_at?: string
           description: string
+          discount?: number | null
           email: string
           id?: string
           premium_price?: number | null
@@ -98,6 +100,7 @@ export type Database = {
           automation_suggestion?: string | null
           created_at?: string
           description?: string
+          discount?: number | null
           email?: string
           id?: string
           premium_price?: number | null
