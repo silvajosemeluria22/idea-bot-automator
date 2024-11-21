@@ -77,7 +77,6 @@ serve(async (req) => {
           .from('orders')
           .update({
             stripe_payment_status: paymentIntent.status,
-            payment_intent_id: paymentIntent.id,
             metadata: {
               payment_status: paymentIntent.status,
               last_updated: new Date().toISOString(),
