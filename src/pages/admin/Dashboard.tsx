@@ -27,12 +27,17 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-[#1C1C1C]">
-      <Sidebar />
-      <main className="flex-1 overflow-y-auto">
+      <div className="hidden md:block">
+        <Sidebar />
+      </div>
+      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
         <div className="container p-6">
           <Outlet />
         </div>
       </main>
+      <div className="md:hidden">
+        <Sidebar />
+      </div>
     </div>
   );
 };
