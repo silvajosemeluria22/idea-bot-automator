@@ -16,7 +16,7 @@ type Solution = {
 const Solution = () => {
   const { id } = useParams();
 
-  const { data: solution, isLoading } = useQuery({
+  const { data: solution, isLoading } = useQuery<Solution>({
     queryKey: ["solution", id],
     queryFn: async () => {
       if (!id) throw new Error('No solution ID provided');
@@ -32,12 +32,13 @@ const Solution = () => {
         throw error;
       }
 
-      console.log("Fetched solution:", data); // Debug log
+      console.log("Fetched solution:", data);
       return data as Solution;
     },
     enabled: !!id,
-    retry: 1, // Retry once if the query fails
   });
+
+  console.log("Current solution state:", { id, isLoading, solution }); // Debug log
 
   if (isLoading) {
     return (
@@ -50,7 +51,7 @@ const Solution = () => {
   if (!solution) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-white mb-4">Loading solution...</h1>
+        <h1 className="text-2xl font-bold text-white mb-4">Solution not found</h1>
       </div>
     );
   }
