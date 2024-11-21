@@ -14,20 +14,28 @@ const Metrics = () => {
   const { data: kpiData } = useQuery({
     queryKey: ['kpi-data'],
     queryFn: async () => {
-      const [solutionsCount, ordersCount, revenueData] = await Promise.all([
-        supabase.from('solutions').select('*', { count: 'exact', head: true }),
-        supabase.from('orders').select('*', { count: 'exact', head: true }),
-        supabase.from('orders')
-          .select('amount')
-          .eq('stripe_payment_status', 'succeeded')
-      ]);
+      // Get solutions count
+      const { count: solutionsCount } = await supabase
+        .from('solutions')
+        .select('*', { count: 'exact', head: true });
 
-      // Convert amount from cents to dollars and sum
-      const totalRevenue = revenueData.data?.reduce((acc, curr) => acc + (Number(curr.amount) / 100), 0) || 0;
+      // Get orders count
+      const { count: ordersCount } = await supabase
+        .from('orders')
+        .select('*', { count: 'exact', head: true });
+
+      // Get revenue from successful orders
+      const { data: revenueData } = await supabase
+        .from('orders')
+        .select('amount')
+        .eq('stripe_payment_status', 'succeeded')
+        .eq('stripe_payment_captured', true);
+
+      const totalRevenue = revenueData?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
 
       return {
-        solutions: solutionsCount.count || 0,
-        orders: ordersCount.count || 0,
+        solutions: solutionsCount || 0,
+        orders: ordersCount || 0,
         revenue: totalRevenue
       };
     }
@@ -87,7 +95,7 @@ const Metrics = () => {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">
-              ${(kpiData?.revenue || 0).toLocaleString()}
+              ${kpiData?.revenue.toLocaleString()}
             </p>
           </CardContent>
         </Card>
