@@ -22,24 +22,24 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const signature = req.headers.get('Stripe-Signature');
-  const body = await req.text();
-  
-  let event;
   try {
-    event = await stripe.webhooks.constructEventAsync(
-      body,
-      signature!,
-      Deno.env.get('Stripe_webhook_secret')!,
-      undefined,
-      stripe.createSubtleCryptoProvider()
-    );
-  } catch (err) {
-    console.error('Error verifying webhook signature:', err);
-    return new Response(err.message, { status: 400 });
-  }
+    const signature = req.headers.get('Stripe-Signature');
+    const body = await req.text();
+    
+    let event;
+    try {
+      event = await stripe.webhooks.constructEventAsync(
+        body,
+        signature!,
+        Deno.env.get('Stripe_webhook_secret')!,
+        undefined,
+        stripe.createSubtleCryptoProvider()
+      );
+    } catch (err) {
+      console.error('Error verifying webhook signature:', err);
+      return new Response(err.message, { status: 400 });
+    }
 
-  try {
     console.log('Processing webhook event:', event.type, 'Event ID:', event.id);
     
     // Log the stripe event
@@ -67,13 +67,12 @@ serve(async (req) => {
         const paymentIntent = event.data.object;
         console.log('Processing payment_intent.created:', paymentIntent.id);
 
-        // Find order by payment_intent_id
         const { data: orders, error: orderError } = await supabaseClient
           .from('orders')
           .update({
             stripe_payment_status: paymentIntent.status,
+            payment_intent_id: paymentIntent.id,
             metadata: {
-              ...paymentIntent.metadata,
               payment_status: paymentIntent.status,
               last_updated: new Date().toISOString(),
             }
@@ -90,11 +89,37 @@ serve(async (req) => {
         break;
       }
 
+      case 'charge.failed': {
+        const charge = event.data.object;
+        console.log('Processing charge.failed:', charge.payment_intent);
+
+        const { error: updateError } = await supabaseClient
+          .from('orders')
+          .update({
+            stripe_payment_status: 'failed',
+            stripe_payment_captured: false,
+            metadata: {
+              payment_status: 'failed',
+              failure_message: charge.failure_message,
+              failure_code: charge.failure_code,
+              last_updated: new Date().toISOString(),
+            }
+          })
+          .eq('payment_intent_id', charge.payment_intent);
+
+        if (updateError) {
+          console.error('Error updating order:', updateError);
+          throw updateError;
+        }
+
+        console.log('Updated order status to failed');
+        break;
+      }
+
       case 'checkout.session.completed': {
         const session = event.data.object;
         console.log('Processing checkout.session.completed:', session.id);
 
-        // Update order with completed session information
         const { error: updateError } = await supabaseClient
           .from('orders')
           .update({
