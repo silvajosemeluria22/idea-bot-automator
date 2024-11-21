@@ -34,9 +34,11 @@ const SolutionView = () => {
   const { data: solution, isLoading } = useQuery({
     queryKey: ['admin-solution', id],
     queryFn: async () => {
+      if (!id) throw new Error('No solution ID provided');
+      
       const { data, error } = await supabase
         .from('solutions')
-        .select('*')
+        .select()
         .eq('id', id)
         .single();
 
@@ -49,9 +51,12 @@ const SolutionView = () => {
 
       return data as Solution;
     },
+    enabled: !!id,
   });
 
   const handleSave = async () => {
+    if (!id) return;
+    
     try {
       const { error } = await supabase
         .from('solutions')
