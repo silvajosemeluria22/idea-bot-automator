@@ -77,6 +77,7 @@ const Solution = () => {
           amount: solution.premium_price,
           title: solution.title,
           solutionId: solution.id,
+          planType: 'premium'
         },
       });
 
@@ -114,10 +115,8 @@ const Solution = () => {
     );
   }
 
-  const hasPremiumOrder = paidOrders?.some(order => order.amount === solution.premium_price);
-  const hasProOrder = paidOrders?.some(order => 
-    order.amount === (solution.pro_price || 0) - (solution.discount || 0)
-  );
+  const hasPremiumOrder = paidOrders?.some(order => order.plan_type === 'premium');
+  const hasProOrder = paidOrders?.some(order => order.plan_type === 'pro');
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -142,7 +141,7 @@ const Solution = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {!hasProOrder && (
               <PremiumPlanCard
-                paidOrder={hasPremiumOrder ? paidOrders?.find(order => order.amount === solution.premium_price) : undefined}
+                paidOrder={hasPremiumOrder ? paidOrders?.find(order => order.plan_type === 'premium') : undefined}
                 solution={solution}
                 isProcessing={isProcessing}
                 whatsapp={whatsapp}
@@ -150,12 +149,14 @@ const Solution = () => {
                 onCheckout={handleCheckout}
               />
             )}
-            <ProPlanCard 
-              solution={solution} 
-              paidOrder={hasProOrder ? paidOrders?.find(order => order.amount === (solution.pro_price || 0) - (solution.discount || 0)) : undefined}
-              whatsapp={whatsapp}
-              onWhatsappChange={setWhatsapp}
-            />
+            {(!hasProOrder || hasPremiumOrder) && (
+              <ProPlanCard 
+                solution={solution} 
+                paidOrder={hasProOrder ? paidOrders?.find(order => order.plan_type === 'pro') : undefined}
+                whatsapp={whatsapp}
+                onWhatsappChange={setWhatsapp}
+              />
+            )}
           </div>
         </div>
       </div>

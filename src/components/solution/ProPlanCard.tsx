@@ -63,6 +63,7 @@ export const ProPlanCard = ({ solution, paidOrder, whatsapp, onWhatsappChange }:
           amount: finalPrice,
           title: `Pro Plan: ${solution.title}`,
           solutionId: solution.id,
+          planType: 'pro'
         },
       });
 

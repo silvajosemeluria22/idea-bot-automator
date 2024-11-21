@@ -23,7 +23,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, amount, title, solutionId } = await req.json();
+    const { email, amount, title, solutionId, planType } = await req.json();
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
@@ -64,7 +64,7 @@ serve(async (req) => {
       );
     }
 
-    // Create order record with payment_intent_id
+    // Create order record with payment_intent_id and plan_type
     const { error: orderError } = await supabaseClient
       .from('orders')
       .insert({
@@ -74,6 +74,7 @@ serve(async (req) => {
         stripe_payment_status: 'pending',
         amount: amount,
         customer_email: email,
+        plan_type: planType,
         metadata: {
           checkout_url: session.url,
           payment_intent_id: session.payment_intent

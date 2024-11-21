@@ -57,6 +57,37 @@ export const PremiumPlanCard = ({
     }
   };
 
+  const handleCheckout = async () => {
+    if (!solution) return;
+    setIsProcessing(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          email: solution.email,
+          amount: solution.premium_price,
+          title: `Premium Plan: ${solution.title}`,
+          solutionId: solution.id,
+          planType: 'premium'
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      setIsProcessing(false);
+      toast({
+        title: "Error",
+        description: "Failed to initiate checkout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (paidOrder) {
     return (
       <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6 relative min-h-[300px]">
@@ -134,7 +165,7 @@ export const PremiumPlanCard = ({
           <p className="text-gray-400">Delivery time: {solution.premium_time} hours</p>
           <Button
             className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
-            onClick={onCheckout}
+            onClick={handleCheckout}
             disabled={isProcessing}
           >
             {isProcessing ? (
