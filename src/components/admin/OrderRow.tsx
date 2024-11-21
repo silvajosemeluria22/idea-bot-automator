@@ -53,9 +53,9 @@ export const OrderRow = ({ order }: OrderRowProps) => {
         )}
       </TableCell>
       <TableCell>
-        {order.stripe_session_id && (
+        {order.payment_intent_id && (
           <a
-            href={`https://dashboard.stripe.com/test/payments/${order.stripe_session_id}`}
+            href={`https://dashboard.stripe.com/test/payments/${order.payment_intent_id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-primary hover:text-primary/80"
