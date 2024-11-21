@@ -22,7 +22,8 @@ const Metrics = () => {
           .eq('stripe_payment_status', 'succeeded')
       ]);
 
-      const totalRevenue = revenueData.data?.reduce((acc, curr) => acc + Number(curr.amount), 0) || 0;
+      // Convert amount from cents to dollars and sum
+      const totalRevenue = revenueData.data?.reduce((acc, curr) => acc + (Number(curr.amount) / 100), 0) || 0;
 
       return {
         solutions: solutionsCount.count || 0,
@@ -150,7 +151,7 @@ const Metrics = () => {
                         <TableRow key={order.id}>
                           <TableCell>{order.solution?.title}</TableCell>
                           <TableCell>{order.customer_email}</TableCell>
-                          <TableCell>${order.amount}</TableCell>
+                          <TableCell>${(Number(order.amount) / 100).toLocaleString()}</TableCell>
                           <TableCell>{order.stripe_payment_status}</TableCell>
                         </TableRow>
                       ))}
