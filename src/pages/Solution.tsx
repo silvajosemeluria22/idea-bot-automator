@@ -139,14 +139,16 @@ const Solution = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <PremiumPlanCard
-              paidOrder={hasPremiumOrder ? paidOrders?.find(order => order.plan_type === 'premium') : undefined}
-              solution={solution}
-              isProcessing={isProcessing}
-              whatsapp={whatsapp}
-              onWhatsappChange={setWhatsapp}
-              onCheckout={handleCheckout}
-            />
+            {!hasProOrder && (
+              <PremiumPlanCard
+                paidOrder={hasPremiumOrder ? paidOrders?.find(order => order.plan_type === 'premium') : undefined}
+                solution={solution}
+                isProcessing={isProcessing}
+                whatsapp={whatsapp}
+                onWhatsappChange={setWhatsapp}
+                onCheckout={handleCheckout}
+              />
+            )}
             <ProPlanCard 
               solution={solution} 
               paidOrder={hasProOrder ? paidOrders?.find(order => order.plan_type === 'pro') : undefined}
