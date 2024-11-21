@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { ExternalLink, RefreshCw } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/ui/use-toast";
+import { ExternalLink } from "lucide-react";
 import { Order } from "@/types/order";
 
 interface OrderRowProps {
@@ -11,42 +9,6 @@ interface OrderRowProps {
 }
 
 export const OrderRow = ({ order }: OrderRowProps) => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const refreshPaymentStatus = useMutation({
-    mutationFn: async (orderId: string) => {
-      const response = await fetch('/functions/v1/refresh-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId }),
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to refresh payment status');
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(["admin-orders"], (oldData: Order[] | undefined) => {
-        if (!oldData) return oldData;
-        return oldData.map(o => o.id === order.id ? { ...o, ...data } : o);
-      });
-      toast({
-        title: "Payment status refreshed",
-        description: "The order has been updated with the latest payment status.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error refreshing payment status",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
   const getStatusBadgeVariant = (status: string | null) => {
     switch (status) {
       case 'succeeded':
@@ -90,7 +52,7 @@ export const OrderRow = ({ order }: OrderRowProps) => {
           </Badge>
         )}
       </TableCell>
-      <TableCell className="space-x-2">
+      <TableCell>
         {order.stripe_session_id && (
           <a
             href={`https://dashboard.stripe.com/test/payments/${order.stripe_session_id}`}
@@ -102,16 +64,6 @@ export const OrderRow = ({ order }: OrderRowProps) => {
             View in Stripe
           </a>
         )}
-        <Button
-          onClick={() => refreshPaymentStatus.mutate(order.id)}
-          variant="ghost"
-          size="sm"
-          className="gap-1"
-          disabled={refreshPaymentStatus.isPending}
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshPaymentStatus.isPending ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
       </TableCell>
     </TableRow>
   );
