@@ -44,10 +44,11 @@ const Solution = () => {
     enabled: !!id,
     refetchInterval: (query) => {
       if (!query.state.data) return 2000;
-      if (query.state.data.title !== "Generating title..." && query.state.data.automation_suggestion) {
-        return false;
+      // Continue refetching until both premium and pro plans are set
+      if (!query.state.data.premium_price || !query.state.data.pro_price) {
+        return 2000;
       }
-      return 2000;
+      return false;
     },
   });
 
