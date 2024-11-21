@@ -1,7 +1,8 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 type Solution = {
   id: string;
@@ -17,8 +18,10 @@ type Solution = {
 
 const Solution = () => {
   const { id } = useParams();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const { data: solution, isLoading } = useQuery<Solution>({
+  const { data: solution, isLoading } = useQuery({
     queryKey: ["solution", id],
     queryFn: async () => {
       if (!id) throw new Error('No solution ID provided');
@@ -44,6 +47,34 @@ const Solution = () => {
       return 2000;
     },
   });
+
+  const handleCheckout = async () => {
+    if (!solution) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          email: solution.email,
+          amount: solution.premium_price,
+          title: solution.title,
+        },
+      });
+
+      if (error) throw error;
+
+      // Redirect to Stripe Checkout
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to initiate checkout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -95,7 +126,10 @@ const Solution = () => {
                   </p>
                   <p className="text-emerald-500">Price: ${solution.premium_price}</p>
                   <p className="text-gray-400">Delivery time: {solution.premium_time} hours</p>
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                  <Button 
+                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    onClick={handleCheckout}
+                  >
                     Get the blueprint
                   </Button>
                 </div>
