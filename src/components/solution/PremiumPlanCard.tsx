@@ -5,7 +5,9 @@ import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import type { Solution } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/types";
+
+type Solution = Database['public']['Tables']['solutions']['Row'];
 
 type PremiumPlanProps = {
   paidOrder: any;
@@ -63,47 +65,49 @@ export const PremiumPlanCard = ({
           <p className="text-white">
             Thank you, we are working on this, you will be notified by email once is completed.
           </p>
-          <div className="space-y-2">
-            <p className="text-white">
-              Prefer whatsapp? input your number bellow with country indicator
-            </p>
-            <div className="flex gap-2">
-              <div className="flex-grow">
-                <PhoneInput
-                  country={'us'}
-                  value={whatsapp}
-                  onChange={onWhatsappChange}
-                  inputStyle={{
-                    width: '100%',
-                    height: '40px',
-                    backgroundColor: '#1C1C1C',
-                    border: '1px solid #333333',
-                    color: 'white',
-                  }}
-                  dropdownStyle={{
-                    backgroundColor: '#1C1C1C',
-                    border: '1px solid #333333',
-                    color: 'white',
-                  }}
-                  buttonStyle={{
-                    backgroundColor: '#1C1C1C',
-                    border: '1px solid #333333',
-                  }}
-                />
+          {!solution.whatsapp_number && (
+            <div className="space-y-2">
+              <p className="text-white">
+                Prefer whatsapp? input your number bellow with country indicator
+              </p>
+              <div className="flex gap-2">
+                <div className="flex-grow">
+                  <PhoneInput
+                    country={'us'}
+                    value={whatsapp}
+                    onChange={onWhatsappChange}
+                    inputStyle={{
+                      width: '100%',
+                      height: '40px',
+                      backgroundColor: '#1C1C1C',
+                      border: '1px solid #333333',
+                      color: 'white',
+                    }}
+                    dropdownStyle={{
+                      backgroundColor: '#1C1C1C',
+                      border: '1px solid #333333',
+                      color: 'white',
+                    }}
+                    buttonStyle={{
+                      backgroundColor: '#1C1C1C',
+                      border: '1px solid #333333',
+                    }}
+                  />
+                </div>
+                <Button
+                  onClick={handleSaveWhatsapp}
+                  disabled={isSaving || !whatsapp}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Check className="h-4 w-4" />
+                  )}
+                </Button>
               </div>
-              <Button
-                onClick={handleSaveWhatsapp}
-                disabled={isSaving || !whatsapp}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Check className="h-4 w-4" />
-                )}
-              </Button>
             </div>
-          </div>
+          )}
           <p className="text-emerald-500 absolute bottom-6">Order Placed Successfully</p>
         </div>
       </div>

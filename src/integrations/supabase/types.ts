@@ -78,6 +78,7 @@ export type Database = {
           pro_time: number | null
           replied: boolean | null
           title: string
+          whatsapp_number: string | null
         }
         Insert: {
           automation_suggestion?: string | null
@@ -91,6 +92,7 @@ export type Database = {
           pro_time?: number | null
           replied?: boolean | null
           title: string
+          whatsapp_number?: string | null
         }
         Update: {
           automation_suggestion?: string | null
@@ -104,6 +106,7 @@ export type Database = {
           pro_time?: number | null
           replied?: boolean | null
           title?: string
+          whatsapp_number?: string | null
         }
         Relationships: []
       }
