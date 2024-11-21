@@ -44,8 +44,8 @@ const Solution = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="space-y-4">
-            <Skeleton className="h-10 w-2/3" />
-            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-4 w-1/4" />
           </div>
           <div className="grid grid-cols-1 gap-6">
             <Skeleton className="h-40" />
