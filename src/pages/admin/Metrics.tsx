@@ -53,14 +53,20 @@ const Metrics = () => {
           .limit(5),
         supabase
           .from('orders')
-          .select('*, solution:solutions(title)')
+          .select(`
+            *,
+            solution:solutions(title)
+          `)
           .or(`customer_email.ilike.%${debouncedSearch}%,solution_id.eq.${debouncedSearch}`)
           .limit(5)
       ]);
 
       return {
         solutions: (solutionsResult.data || []) as Solution[],
-        orders: (ordersResult.data || []) as Order[]
+        orders: (ordersResult.data || []).map(order => ({
+          ...order,
+          solution: { title: order.solution?.[0]?.title || '' }
+        })) as Order[]
       };
     },
     enabled: debouncedSearch.length > 0

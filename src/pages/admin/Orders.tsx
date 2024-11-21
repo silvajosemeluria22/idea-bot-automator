@@ -19,12 +19,17 @@ const Orders = () => {
         .from("orders")
         .select(`
           *,
-          solution:solutions!inner(title)
+          solution:solutions(title)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as Order[];
+      
+      // Transform the data to match our Order type
+      return (data || []).map(order => ({
+        ...order,
+        solution: { title: order.solution?.[0]?.title || '' }
+      })) as Order[];
     },
   });
 
@@ -69,7 +74,7 @@ const Orders = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orders?.map((order) => (
+            {orders.map((order) => (
               <OrderRow key={order.id} order={order} />
             ))}
           </TableBody>
