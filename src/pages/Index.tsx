@@ -21,33 +21,40 @@ const Index = () => {
       return;
     }
 
-    // Create solution in database first with minimal data
-    const { data: solution, error: insertError } = await supabase
-      .from('solutions')
-      .insert([
-        {
-          title: "Generating title...", // Temporary title
-          description: problem,
-          email: email,
-        }
-      ])
-      .select()
-      .single();
-
-    if (insertError) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Redirect immediately after creating the initial record
-    navigate(`/solution/${solution.id}`);
-
-    // Generate title using OpenAI after redirect
     try {
+      // Create solution in database first with minimal data
+      const { data: solution, error: insertError } = await supabase
+        .from('solutions')
+        .insert([
+          {
+            title: "Generating title...", // Temporary title
+            description: problem,
+            email: email,
+          }
+        ])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Generate automation suggestion
+      const { data: automationData, error: automationError } = await supabase.functions.invoke('generate-automation', {
+        body: { description: problem }
+      });
+
+      if (automationError) throw automationError;
+
+      // Update solution with automation suggestion
+      const { error: updateError } = await supabase
+        .from('solutions')
+        .update({ 
+          automation_suggestion: automationData.suggestion 
+        })
+        .eq('id', solution.id);
+
+      if (updateError) throw updateError;
+
+      // Generate title using OpenAI
       const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-title', {
         body: { description: problem }
       });
@@ -60,10 +67,17 @@ const Index = () => {
         .update({ title: titleData.title })
         .eq('id', solution.id);
 
+      // Redirect to solution page
+      navigate(`/solution/${solution.id}`);
+
     } catch (error) {
       console.error('Error:', error);
-      // The user won't see this toast since they're on a different page
-      // The error state will be handled in the Solution page component
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+      return;
     }
 
     // Clear form
