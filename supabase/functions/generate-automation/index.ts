@@ -18,6 +18,8 @@ serve(async (req) => {
       throw new Error('Description is required')
     }
 
+    console.log('Generating automation suggestion for:', description)
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -25,11 +27,11 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that provides automation suggestions using make.com.'
+            content: 'You are a helpful assistant that provides automation suggestions using make.com. Keep your responses concise and focused on practical automation steps.'
           },
           {
             role: 'user',
@@ -40,6 +42,8 @@ serve(async (req) => {
     })
 
     if (!response.ok) {
+      const errorData = await response.text()
+      console.error('OpenAI API error:', errorData)
       throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`)
     }
 
@@ -49,6 +53,8 @@ serve(async (req) => {
     if (!suggestion) {
       throw new Error('No suggestion generated')
     }
+
+    console.log('Generated suggestion:', suggestion)
 
     return new Response(
       JSON.stringify({ suggestion }),
