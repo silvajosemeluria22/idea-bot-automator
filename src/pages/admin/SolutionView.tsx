@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormattedText } from "@/components/FormattedText";
 
 type Solution = {
   id: string;
@@ -121,7 +122,7 @@ const SolutionView = () => {
           </div>
           <div>
             <p className="text-sm text-gray-400 mb-2">Automation Suggestion</p>
-            <p className="text-white whitespace-pre-wrap">{solution.automation_suggestion}</p>
+            <FormattedText text={solution.automation_suggestion} className="text-white whitespace-pre-wrap" />
           </div>
         </CardContent>
       </Card>

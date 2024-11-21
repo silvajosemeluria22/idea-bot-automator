@@ -5,6 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { PremiumPlanCard } from "@/components/solution/PremiumPlanCard";
 import { ProPlanCard } from "@/components/solution/ProPlanCard";
+import { FormattedText } from "@/components/FormattedText";  // Importing the new component
 import type { Solution } from "@/types/order";
 
 const Solution = () => {
@@ -129,13 +130,10 @@ const Solution = () => {
         <div className="grid grid-cols-1 gap-6">
           <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
             <div className="text-emerald-500 mb-4">Free</div>
-            <p className="text-white whitespace-pre-wrap">
-              {solution?.automation_suggestion || (
-                <div className="flex items-center justify-center h-40">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
-                </div>
-              )}
-            </p>
+            <FormattedText 
+              text={solution?.automation_suggestion} 
+              className="text-white whitespace-pre-wrap"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
