@@ -1,20 +1,15 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Loader2, Check } from "lucide-react";
 import { useState } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import type { Solution } from "@/integrations/supabase/types";
 
 type PremiumPlanProps = {
   paidOrder: any;
-  solution: {
-    id: string;
-    premium_price: number;
-    premium_time: number;
-    whatsapp_number?: string;
-  };
+  solution: Pick<Solution, 'id' | 'premium_price' | 'premium_time' | 'whatsapp_number'>;
   isProcessing: boolean;
   whatsapp: string;
   onWhatsappChange: (value: string) => void;
