@@ -1,113 +1,180 @@
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
-import { useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
+
+type Solution = {
+  id: string;
+  title: string;
+  description: string;
+  email: string;
+  automation_suggestion: string | null;
+  premium_price: number | null;
+  premium_time: number | null;
+  pro_price: number | null;
+  pro_time: number | null;
+};
 
 const Solution = () => {
   const { id } = useParams();
-  const [searchParams] = useSearchParams();
   const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(false);
 
-  const { data: solution } = useQuery({
-    queryKey: ['solution', id],
+  const { data: solution, isLoading } = useQuery({
+    queryKey: ["solution", id],
     queryFn: async () => {
+      if (!id) throw new Error('No solution ID provided');
+
       const { data, error } = await supabase
-        .from('solutions')
+        .from("solutions")
         .select()
-        .eq('id', id)
+        .eq("id", id)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching solution:", error);
+        throw error;
+      }
+
+      return data as Solution;
     },
     enabled: !!id,
+    refetchInterval: (query) => {
+      if (!query.state.data) return 2000;
+      if (query.state.data.title !== "Generating title..." && query.state.data.automation_suggestion) {
+        return false;
+      }
+      return 2000;
+    },
   });
 
-  const handleGetBlueprint = async () => {
+  const handleCheckout = async () => {
     if (!solution) return;
-    
-    setIsLoading(true);
+
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
           email: solution.email,
           amount: solution.premium_price,
           title: solution.title,
           solutionId: solution.id,
-        }),
+        },
       });
 
-      const { url } = await response.json();
-      if (url) {
-        window.location.href = url;
-      } else {
-        throw new Error('No checkout URL received');
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
       toast({
         title: "Error",
-        description: "Failed to create checkout session. Please try again.",
+        description: "Failed to initiate checkout. Please try again.",
         variant: "destructive",
       });
-      setIsLoading(false);
     }
   };
 
-  if (!solution) {
+  if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-700 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-700 rounded"></div>
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-500"></div>
         </div>
       </div>
     );
   }
 
+  if (!solution) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-white mb-4">Solution not found</h1>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <Card className="bg-[#232323] border-[#505050]">
-        <CardHeader>
-          <CardTitle>{solution.title}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-400 mb-2">Description</p>
-            <p className="text-white">{solution.description}</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-white">${solution.premium_price}</span>
-              <span className="text-sm text-gray-400">Premium Blueprint</span>
-            </div>
-            <Button 
-              onClick={handleGetBlueprint}
-              disabled={isLoading}
-              className="w-full sm:w-auto"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                'Get the Blueprint'
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="space-y-4">
+          <h1 className="text-3xl font-bold text-white">{solution?.title}</h1>
+          <p className="text-gray-400">{solution?.email}</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6">
+          {/* Free Plan */}
+          <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
+            <div className="text-emerald-500 mb-4">Free</div>
+            <p className="text-white whitespace-pre-wrap">
+              {solution?.automation_suggestion || (
+                <div className="flex items-center justify-center h-40">
+                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
+                </div>
               )}
-            </Button>
+            </p>
           </div>
-        </CardContent>
-      </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Premium Plan */}
+            <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
+              <div className="text-emerald-500 mb-4">Premium</div>
+              {solution?.premium_price && solution?.premium_time ? (
+                <div className="space-y-4">
+                  <p className="text-white">
+                    A more detailed solution that includes a comprehensive diagram illustrating the solution architecture, and a step-by-step action plan for implementation. This package is designed for clients who have the resources to implement the solution on their own but need a detailed roadmap.
+                  </p>
+                  <p className="text-emerald-500">Price: ${solution.premium_price}</p>
+                  <p className="text-gray-400">Delivery time: {solution.premium_time} hours</p>
+                  <Button 
+                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    onClick={handleCheckout}
+                  >
+                    Get the blueprint
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-center h-40">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
+                  </div>
+                  <p className="text-gray-500 text-center mt-4">
+                    This could take up to 24 hours, comeback later<br />
+                    or check your email for notification.
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Pro Plan */}
+            <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
+              <div className="text-emerald-500 mb-4">Pro</div>
+              {solution?.pro_price && solution?.pro_time ? (
+                <div className="space-y-4">
+                  <p className="text-white">
+                    The most comprehensive offering, this package includes not only the detailed planning and diagrams of the Premium Solution but also full implementation services provided by our team. This hands-off approach is perfect for clients who prefer to have experts handle the entire process.
+                  </p>
+                  <p className="text-emerald-500">Price: ${solution.pro_price}</p>
+                  <p className="text-gray-400">Delivery time: {solution.pro_time} hours</p>
+                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                    Do it for me
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-center h-40">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
+                  </div>
+                  <p className="text-gray-500 text-center mt-4">
+                    This could take up to 24 hours, comeback later<br />
+                    or check your email for notification.
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
