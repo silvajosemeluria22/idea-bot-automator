@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useState } from "react";
 import { PremiumPlanCard } from "@/components/solution/PremiumPlanCard";
 import { ProPlanCard } from "@/components/solution/ProPlanCard";
-import type { Solution } from "@/integrations/supabase/types";
+import type { Solution } from "@/types/order";
 
 const Solution = () => {
   const { id } = useParams();

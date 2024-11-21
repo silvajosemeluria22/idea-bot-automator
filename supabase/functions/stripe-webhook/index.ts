@@ -86,6 +86,8 @@ serve(async (req) => {
         console.log('Processing checkout.session.completed:', session.id);
 
         const orderStatus = getOrderStatus(event.type, session.status);
+        
+        // Update order status
         const { error: updateError } = await supabaseClient
           .from('orders')
           .update({
@@ -104,6 +106,27 @@ serve(async (req) => {
         if (updateError) {
           console.error('Error updating order:', updateError);
           throw updateError;
+        }
+
+        // If payment is successful, set discount for pro upgrade
+        if (orderStatus === 'paid') {
+          const { data: order } = await supabaseClient
+            .from('orders')
+            .select('solution_id, amount')
+            .eq('stripe_session_id', session.id)
+            .single();
+
+          if (order) {
+            // Set the premium amount as discount for pro
+            const { error: discountError } = await supabaseClient
+              .from('solutions')
+              .update({ discount: order.amount })
+              .eq('id', order.solution_id);
+
+            if (discountError) {
+              console.error('Error setting discount:', discountError);
+            }
+          }
         }
         break;
       }

@@ -1,17 +1,9 @@
-export interface Order {
-  id: string;
-  solution_id: string;
-  stripe_session_id: string | null;
-  stripe_payment_status: string | null;
-  stripe_payment_captured: boolean;
-  amount: number;
-  currency: string;
-  customer_email: string;
-  created_at: string;
-  updated_at: string;
-  metadata: any;
-  payment_intent_id: string | null;
-  solution: {
+import type { Database } from "@/integrations/supabase/types";
+
+export type Order = Database['public']['Tables']['orders']['Row'] & {
+  solution?: {
     title: string;
   };
-}
+};
+
+export type Solution = Database['public']['Tables']['solutions']['Row'];

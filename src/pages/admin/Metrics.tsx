@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TableHeader, TableRow, TableHead, TableBody, TableCell, Table } from "@/components/ui/table";
 import { useDebounce } from "@/hooks/useDebounce";
-import type { Solution, Order } from "@/integrations/supabase/types";
+import type { Solution, Order } from "@/types/order";
 
 const Metrics = () => {
   const [search, setSearch] = useState("");

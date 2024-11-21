@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { OrderRow } from "@/components/admin/OrderRow";
-import { Order } from "@/integrations/supabase/types";
+import type { Order } from "@/types/order";
 
 const Orders = () => {
   const { data: orders, isLoading } = useQuery({
