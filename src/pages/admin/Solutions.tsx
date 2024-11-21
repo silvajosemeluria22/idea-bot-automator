@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
-import { MessageSquare, CheckSquare } from "lucide-react";
+import { MessageSquare, CheckSquare, ExternalLink } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -13,18 +13,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
+type FilterType = "all" | "need_reply" | "replied";
+
 const Solutions = () => {
-  const [filter, setFilter] = useState<"need_reply" | "replied">("need_reply");
+  const [filter, setFilter] = useState<FilterType>("need_reply");
 
   const { data: solutions, isLoading } = useQuery({
     queryKey: ["admin-solutions", filter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const query = supabase
         .from("solutions")
         .select("*")
-        .eq("replied", filter === "replied")
         .order("created_at", { ascending: false });
 
+      if (filter !== "all") {
+        query.eq("replied", filter === "replied");
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data;
     },
@@ -43,6 +49,13 @@ const Solutions = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-white">Solutions</h1>
         <div className="flex space-x-2">
+          <Button
+            variant={filter === "all" ? "default" : "outline"}
+            onClick={() => setFilter("all")}
+            className="flex items-center gap-2"
+          >
+            All Solutions
+          </Button>
           <Button
             variant={filter === "need_reply" ? "default" : "outline"}
             onClick={() => setFilter("need_reply")}
@@ -80,7 +93,7 @@ const Solutions = () => {
                 <TableCell>
                   {new Date(solution.created_at).toLocaleDateString()}
                 </TableCell>
-                <TableCell>
+                <TableCell className="space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -89,6 +102,15 @@ const Solutions = () => {
                     <Link to={`/admin/dashboard/solutions/${solution.id}`}>
                       View Details
                     </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(`/solution/${solution.id}`, '_blank')}
+                    className="flex items-center gap-2"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    Client View
                   </Button>
                 </TableCell>
               </TableRow>

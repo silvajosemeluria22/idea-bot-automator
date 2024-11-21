@@ -1,64 +1,38 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 type Solution = {
   id: string;
   title: string;
   description: string;
-  email: string;
-  created_at: string;
-  automation_suggestion?: string | null;
-  premium_price?: number | null;
-  premium_time?: number | null;
-  pro_price?: number | null;
-  pro_time?: number | null;
-}
+  automation_suggestion: string | null;
+  premium_price: number | null;
+  premium_time: number | null;
+  pro_price: number | null;
+  pro_time: number | null;
+};
 
 const Solution = () => {
   const { id } = useParams();
 
-  const { data: solution, isLoading } = useQuery<Solution>({
-    queryKey: ['solution', id],
+  const { data: solution, isLoading } = useQuery({
+    queryKey: ["solution", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('solutions')
-        .select('*')
-        .eq('id', id)
+        .from("solutions")
+        .select("*")
+        .eq("id", id)
         .single();
 
       if (error) throw error;
-
-      if (data && !data.automation_suggestion) {
-        try {
-          const { data: suggestionData } = await supabase.functions.invoke('generate-automation', {
-            body: { description: data.description }
-          });
-          
-          if (suggestionData?.suggestion) {
-            await supabase
-              .from('solutions')
-              .update({ automation_suggestion: suggestionData.suggestion })
-              .eq('id', data.id);
-            
-            data.automation_suggestion = suggestionData.suggestion;
-          }
-        } catch (error) {
-          console.error('Error generating automation suggestion:', error);
-        }
-      }
-
-      return data;
+      return data as Solution;
     },
-    refetchInterval: (data) => 
-      data && (!data.automation_suggestion || data.title === "Generating title...") ? 2000 : false,
   });
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
@@ -66,94 +40,49 @@ const Solution = () => {
 
   if (!solution) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="w-full max-w-3xl">
-          <CardHeader>
-            <CardTitle className="text-2xl text-red-500">Solution Not Found</CardTitle>
-            <CardDescription>
-              The solution you're looking for doesn't exist or has been removed.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-2xl font-bold text-white mb-4">Solution not found</h1>
       </div>
     );
   }
 
   return (
-    <div className="container min-h-screen p-4 max-w-5xl mx-auto space-y-6">
-      <div className="space-y-4">
-        <h1 className="text-4xl font-bold text-white">
-          {solution.title === "Generating title..." ? (
-            <div className="flex items-center gap-2">
-              <span>Generating title</span>
-              <div className="animate-bounce">...</div>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto space-y-8">
+        <div className="space-y-4">
+          <h1 className="text-3xl font-bold text-white">{solution.title}</h1>
+          <p className="text-gray-400 whitespace-pre-wrap">{solution.description}</p>
+          {solution.automation_suggestion && (
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold text-white mb-2">Automation Suggestion</h2>
+              <p className="text-gray-400 whitespace-pre-wrap">{solution.automation_suggestion}</p>
             </div>
-          ) : (
-            solution.title
           )}
-        </h1>
-        <p className="text-gray-400">{solution.email}</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-2 bg-[#232323] border-[#505050]">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Badge variant="default" className="bg-emerald-500">Free</Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-300 whitespace-pre-wrap">
-              {solution.automation_suggestion || "Generating automation suggestion..."}
-            </p>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-6">
-          <Card className="bg-[#232323] border-[#505050]">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <Badge variant="default" className="bg-purple-500">Premium</Badge>
-                {solution.premium_price && (
-                  <span className="text-lg font-bold">${solution.premium_price}</span>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {solution.premium_time ? (
-                <p className="text-gray-300">
-                  Delivery time: {solution.premium_time} hours
-                </p>
-              ) : (
-                <p className="text-gray-400 text-sm text-center">
-                  This could take up to 24 hours, comeback later or check your email for notification.
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="bg-[#232323] border-[#505050]">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <Badge variant="default" className="bg-blue-500">Pro</Badge>
-                {solution.pro_price && (
-                  <span className="text-lg font-bold">${solution.pro_price}</span>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent>
-              {solution.pro_time ? (
-                <p className="text-gray-300">
-                  Delivery time: {solution.pro_time} hours
-                </p>
-              ) : (
-                <p className="text-gray-400 text-sm text-center">
-                  This could take up to 24 hours, comeback later or check your email for notification.
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </div>
+
+        {(solution.premium_price || solution.pro_price) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {solution.premium_price && solution.premium_time && (
+              <div className="bg-[#232323] p-6 rounded-lg border border-[#505050]">
+                <h3 className="text-xl font-semibold text-white mb-4">Premium Plan</h3>
+                <div className="space-y-2">
+                  <p className="text-gray-400">Price: ${solution.premium_price}</p>
+                  <p className="text-gray-400">Delivery Time: {solution.premium_time} hours</p>
+                </div>
+              </div>
+            )}
+
+            {solution.pro_price && solution.pro_time && (
+              <div className="bg-[#232323] p-6 rounded-lg border border-[#505050]">
+                <h3 className="text-xl font-semibold text-white mb-4">Pro Plan</h3>
+                <div className="space-y-2">
+                  <p className="text-gray-400">Price: ${solution.pro_price}</p>
+                  <p className="text-gray-400">Delivery Time: {solution.pro_time} hours</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
