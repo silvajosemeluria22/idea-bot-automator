@@ -64,17 +64,19 @@ serve(async (req) => {
       );
     }
 
-    // Create order record
+    // Create order record with payment_intent_id
     const { error: orderError } = await supabaseClient
       .from('orders')
       .insert({
         solution_id: solutionId,
         stripe_session_id: session.id,
+        payment_intent_id: session.payment_intent,
         stripe_payment_status: 'pending',
         amount: amount,
         customer_email: email,
         metadata: {
-          checkout_url: session.url
+          checkout_url: session.url,
+          payment_intent_id: session.payment_intent
         }
       });
 
