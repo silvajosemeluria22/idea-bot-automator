@@ -55,6 +55,7 @@ const Orders = () => {
       // Refresh the orders list
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     } catch (error) {
+      console.error('Error refreshing transactions:', error);
       toast({
         title: "Error refreshing transactions",
         description: error.message,
