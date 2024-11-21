@@ -47,20 +47,28 @@ const Solutions = () => {
 
   const getStatusBadgeVariant = (status: string | null) => {
     switch (status) {
-      case 'succeeded':
-      case 'completed':
+      case 'paid':
         return 'default';
-      case 'processing':
-      case 'requires_payment_method':
-      case 'requires_confirmation':
-      case 'requires_action':
+      case 'pending':
         return 'secondary';
-      case 'expired':
-      case 'canceled':
+      case 'failed':
         return 'destructive';
       default:
         return 'outline';
     }
+  };
+
+  const getPlanType = (solution: any) => {
+    if (!solution.orders || solution.orders.length === 0) return null;
+    
+    const paidOrders = solution.orders.filter((order: any) => order.stripe_payment_status === 'paid');
+    if (paidOrders.length === 0) return null;
+
+    // Check the latest paid order
+    const latestOrder = paidOrders[paidOrders.length - 1];
+    if (latestOrder.amount === solution.premium_price) return 'Premium';
+    if (latestOrder.amount === (solution.pro_price - (solution.discount || 0))) return 'Pro';
+    return null;
   };
 
   if (isLoading) {
@@ -152,6 +160,7 @@ const Solutions = () => {
               <TableHead>Title</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Created At</TableHead>
+              <TableHead>Plan Type</TableHead>
               <TableHead>Payment Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -163,6 +172,15 @@ const Solutions = () => {
                 <TableCell>{solution.email}</TableCell>
                 <TableCell>
                   {new Date(solution.created_at).toLocaleDateString()}
+                </TableCell>
+                <TableCell>
+                  {getPlanType(solution) ? (
+                    <Badge variant="secondary">
+                      {getPlanType(solution)}
+                    </Badge>
+                  ) : (
+                    <Badge variant="outline">No plan</Badge>
+                  )}
                 </TableCell>
                 <TableCell>
                   {solution.orders && solution.orders[0] ? (
