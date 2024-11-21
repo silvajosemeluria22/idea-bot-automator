@@ -62,9 +62,11 @@ export const PremiumPlanCard = ({
       <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6 relative min-h-[300px]">
         <div className="text-emerald-500 mb-4">Premium</div>
         <div className="space-y-4">
-          <p className="text-white">
-            Thank you, we are working on this, you will be notified by email once is completed.
-          </p>
+          <div className={`text-center ${!solution.whatsapp_number ? 'mb-4' : ''}`}>
+            <p className="text-white">
+              Thank you, we are working on this, you will be notified by email once is completed.
+            </p>
+          </div>
           {!solution.whatsapp_number && (
             <div className="space-y-2">
               <p className="text-white">
