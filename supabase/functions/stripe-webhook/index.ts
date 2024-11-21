@@ -7,12 +7,12 @@ const stripe = new Stripe(Deno.env.get('stripe_development_secret_key') as strin
   httpClient: Stripe.createFetchHttpClient(),
 });
 
-const cryptoProvider = Stripe.createSubtleCryptoProvider();
-
 const supabaseClient = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
+
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -93,6 +93,34 @@ serve(async (req) => {
 
     // Handle specific events
     switch (event.type) {
+      case 'checkout.session.completed': {
+        console.log('Checkout session completed:', event.data.object.id);
+        
+        if (orderId) {
+          const session = event.data.object;
+          const { error } = await supabaseClient
+            .from('orders')
+            .update({ 
+              stripe_payment_status: 'succeeded',
+              stripe_payment_captured: true,
+              payment_intent_id: session.payment_intent,
+              metadata: {
+                payment_status: 'succeeded',
+                captured: true,
+                last_updated: new Date().toISOString(),
+              }
+            })
+            .eq('id', orderId);
+
+          if (error) {
+            console.error('Error updating order:', error);
+            throw error;
+          }
+          console.log('Successfully updated order status for session:', session.id);
+        }
+        break;
+      }
+      
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
         console.log('Payment intent succeeded:', paymentIntent.id);
@@ -116,6 +144,7 @@ serve(async (req) => {
             console.error('Error updating order:', error);
             throw error;
           }
+          console.log('Successfully updated order status for payment:', paymentIntent.id);
         }
         break;
       }
@@ -143,6 +172,7 @@ serve(async (req) => {
             console.error('Error updating order:', error);
             throw error;
           }
+          console.log('Successfully updated order status as failed for payment:', paymentIntent.id);
         }
         break;
       }
