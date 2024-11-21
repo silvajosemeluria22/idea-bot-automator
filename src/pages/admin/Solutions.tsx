@@ -30,7 +30,8 @@ const Solutions = () => {
           orders (
             stripe_payment_status,
             amount,
-            currency
+            currency,
+            plan_type
           )
         `)
         .order("created_at", { ascending: false });
@@ -64,11 +65,20 @@ const Solutions = () => {
     const paidOrders = solution.orders.filter((order: any) => order.stripe_payment_status === 'paid');
     if (paidOrders.length === 0) return null;
 
-    // Check the latest paid order
+    // Get the latest paid order's plan type
     const latestOrder = paidOrders[paidOrders.length - 1];
-    if (latestOrder.amount === solution.premium_price) return 'Premium';
-    if (latestOrder.amount === (solution.pro_price - (solution.discount || 0))) return 'Pro';
-    return null;
+    return latestOrder.plan_type;
+  };
+
+  const getPlanBadgeVariant = (planType: string | null) => {
+    switch (planType?.toLowerCase()) {
+      case 'premium':
+        return 'secondary';
+      case 'pro':
+        return 'default';
+      default:
+        return 'outline';
+    }
   };
 
   if (isLoading) {
@@ -175,7 +185,7 @@ const Solutions = () => {
                 </TableCell>
                 <TableCell>
                   {getPlanType(solution) ? (
-                    <Badge variant="secondary">
+                    <Badge variant={getPlanBadgeVariant(getPlanType(solution))}>
                       {getPlanType(solution)}
                     </Badge>
                   ) : (
