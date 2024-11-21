@@ -29,7 +29,6 @@ export const OrderRow = ({ order }: OrderRowProps) => {
       return response.json();
     },
     onSuccess: (data) => {
-      // Update just this order in the cache
       queryClient.setQueryData(["admin-orders"], (oldData: Order[] | undefined) => {
         if (!oldData) return oldData;
         return oldData.map(o => o.id === order.id ? { ...o, ...data } : o);
@@ -79,12 +78,17 @@ export const OrderRow = ({ order }: OrderRowProps) => {
           currency: order.currency.toUpperCase(),
         }).format(order.amount)}
       </TableCell>
-      <TableCell>
+      <TableCell className="space-y-1">
         <Badge
           variant={getStatusBadgeVariant(order.stripe_payment_status)}
         >
           {order.stripe_payment_status || 'pending'}
         </Badge>
+        {order.stripe_payment_status === 'succeeded' && (
+          <Badge variant={order.stripe_payment_captured ? 'default' : 'destructive'}>
+            {order.stripe_payment_captured ? 'Captured' : 'Not Captured'}
+          </Badge>
+        )}
       </TableCell>
       <TableCell className="space-x-2">
         {order.stripe_session_id && (

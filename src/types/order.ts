@@ -3,6 +3,7 @@ export interface Order {
   solution_id: string;
   stripe_session_id: string | null;
   stripe_payment_status: string | null;
+  stripe_payment_captured: boolean;
   amount: number;
   currency: string;
   customer_email: string;

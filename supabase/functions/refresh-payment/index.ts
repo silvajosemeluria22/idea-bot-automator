@@ -18,7 +18,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -43,9 +42,11 @@ serve(async (req) => {
       const paymentIntent = await stripe.paymentIntents.retrieve(order.payment_intent_id);
       paymentData = {
         stripe_payment_status: paymentIntent.status,
+        stripe_payment_captured: paymentIntent.status === 'succeeded' && paymentIntent.amount_received > 0,
         metadata: {
           ...order.metadata,
           payment_status: paymentIntent.status,
+          captured: paymentIntent.status === 'succeeded' && paymentIntent.amount_received > 0,
           last_updated: new Date().toISOString(),
         }
       };
@@ -55,10 +56,12 @@ serve(async (req) => {
       paymentData = {
         payment_intent_id: session.payment_intent,
         stripe_payment_status: paymentIntent.status,
+        stripe_payment_captured: paymentIntent.status === 'succeeded' && paymentIntent.amount_received > 0,
         metadata: {
           ...order.metadata,
           payment_status: paymentIntent.status,
           payment_intent: session.payment_intent,
+          captured: paymentIntent.status === 'succeeded' && paymentIntent.amount_received > 0,
           last_updated: new Date().toISOString(),
         }
       };

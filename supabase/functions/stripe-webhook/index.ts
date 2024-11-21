@@ -49,7 +49,7 @@ serve(async (req) => {
         const session = event.data.object;
         console.log('Checkout session completed:', session.id);
         
-        // Fetch the payment intent to get the latest status
+        // Fetch the payment intent to get the latest status and capture info
         const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
         console.log('Payment intent status:', paymentIntent.status);
         
@@ -59,12 +59,14 @@ serve(async (req) => {
           .update({ 
             stripe_payment_status: paymentIntent.status,
             payment_intent_id: session.payment_intent,
+            stripe_payment_captured: paymentIntent.status === 'succeeded' && paymentIntent.amount_received > 0,
             metadata: {
               payment_status: paymentIntent.status,
               payment_intent: session.payment_intent,
               session_id: session.id,
               customer: session.customer,
               customer_email: session.customer_email,
+              captured: paymentIntent.status === 'succeeded' && paymentIntent.amount_received > 0,
             }
           })
           .eq('stripe_session_id', session.id);
@@ -86,9 +88,11 @@ serve(async (req) => {
           .from('orders')
           .update({ 
             stripe_payment_status: 'expired',
+            stripe_payment_captured: false,
             metadata: {
               session_id: session.id,
               expired_at: new Date().toISOString(),
+              captured: false,
             }
           })
           .eq('stripe_session_id', session.id);
