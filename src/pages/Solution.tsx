@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Solution = {
   id: string;
@@ -32,13 +33,10 @@ const Solution = () => {
         throw error;
       }
 
-      console.log("Fetched solution:", data);
       return data as Solution;
     },
     enabled: !!id,
   });
-
-  console.log("Current solution state:", { id, isLoading, solution }); // Debug log
 
   if (isLoading) {
     return (
@@ -58,7 +56,7 @@ const Solution = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-3xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-8">
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-white">{solution.title}</h1>
           <p className="text-gray-400 whitespace-pre-wrap">{solution.description}</p>
@@ -70,29 +68,53 @@ const Solution = () => {
           )}
         </div>
 
-        {(solution.premium_price || solution.pro_price) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {solution.premium_price && solution.premium_time && (
-              <div className="bg-[#232323] p-6 rounded-lg border border-[#505050]">
-                <h3 className="text-xl font-semibold text-white mb-4">Premium Plan</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Free Plan */}
+          <Card className="bg-[#232323] border-[#505050]">
+            <CardHeader>
+              <CardTitle className="text-white">Free Plan</CardTitle>
+              <CardDescription>Basic automation suggestion</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className="text-2xl font-bold text-white">$0</p>
+                <p className="text-gray-400">Delivery Time: Instant</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Premium Plan */}
+          {solution.premium_price && solution.premium_time && (
+            <Card className="bg-[#232323] border-[#505050]">
+              <CardHeader>
+                <CardTitle className="text-white">Premium Plan</CardTitle>
+                <CardDescription>Enhanced automation solution</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2">
-                  <p className="text-gray-400">Price: ${solution.premium_price}</p>
+                  <p className="text-2xl font-bold text-white">${solution.premium_price}</p>
                   <p className="text-gray-400">Delivery Time: {solution.premium_time} hours</p>
                 </div>
-              </div>
-            )}
+              </CardContent>
+            </Card>
+          )}
 
-            {solution.pro_price && solution.pro_time && (
-              <div className="bg-[#232323] p-6 rounded-lg border border-[#505050]">
-                <h3 className="text-xl font-semibold text-white mb-4">Pro Plan</h3>
+          {/* Pro Plan */}
+          {solution.pro_price && solution.pro_time && (
+            <Card className="bg-[#232323] border-[#505050]">
+              <CardHeader>
+                <CardTitle className="text-white">Pro Plan</CardTitle>
+                <CardDescription>Full custom implementation</CardDescription>
+              </CardHeader>
+              <CardContent>
                 <div className="space-y-2">
-                  <p className="text-gray-400">Price: ${solution.pro_price}</p>
+                  <p className="text-2xl font-bold text-white">${solution.pro_price}</p>
                   <p className="text-gray-400">Delivery Time: {solution.pro_time} hours</p>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
