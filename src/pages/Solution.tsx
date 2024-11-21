@@ -39,9 +39,9 @@ const Solution = () => {
       return data as Solution;
     },
     enabled: !!id,
-    refetchInterval: (data: Solution | undefined) => {
-      if (!data) return 2000;
-      if (data.title !== "Generating title..." && data.automation_suggestion) {
+    refetchInterval: (query) => {
+      if (!query.state.data) return 2000;
+      if (query.state.data.title !== "Generating title..." && query.state.data.automation_suggestion) {
         return false;
       }
       return 2000;
