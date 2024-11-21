@@ -46,6 +46,24 @@ serve(async (req) => {
       customer_email: email,
     });
 
+    // Check if an order already exists for this session
+    const { data: existingOrder } = await supabaseClient
+      .from('orders')
+      .select('*')
+      .eq('stripe_session_id', session.id)
+      .single();
+
+    if (existingOrder) {
+      console.log('Order already exists for session:', session.id);
+      return new Response(
+        JSON.stringify({ url: session.url }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        },
+      );
+    }
+
     // Create order record
     const { error: orderError } = await supabaseClient
       .from('orders')
