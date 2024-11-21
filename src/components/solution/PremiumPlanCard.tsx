@@ -12,22 +12,21 @@ type Solution = Database['public']['Tables']['solutions']['Row'];
 type PremiumPlanProps = {
   paidOrder: any;
   solution: Solution;
-  isProcessing: boolean;
+  isProcessing?: boolean; // Made optional since we're handling it internally now
   whatsapp: string;
   onWhatsappChange: (value: string) => void;
-  onCheckout: () => void;
+  onCheckout?: () => void; // Made optional since we're handling it internally now
 };
 
 export const PremiumPlanCard = ({
   paidOrder,
   solution,
-  isProcessing,
   whatsapp,
   onWhatsappChange,
-  onCheckout,
 }: PremiumPlanProps) => {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSaveWhatsapp = async () => {
     if (!whatsapp) return;
