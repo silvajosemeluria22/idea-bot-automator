@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 
 type FilterType = "all" | "need_reply" | "replied";
@@ -66,6 +67,49 @@ const Solutions = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!solutions?.length) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-white">Solutions</h1>
+          <div className="flex space-x-2">
+            <Button
+              variant={filter === "all" ? "default" : "outline"}
+              onClick={() => setFilter("all")}
+              className="flex items-center gap-2"
+            >
+              All Solutions
+            </Button>
+            <Button
+              variant={filter === "need_reply" ? "default" : "outline"}
+              onClick={() => setFilter("need_reply")}
+              className="flex items-center gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Need Reply
+            </Button>
+            <Button
+              variant={filter === "replied" ? "default" : "outline"}
+              onClick={() => setFilter("replied")}
+              className="flex items-center gap-2"
+            >
+              <CheckSquare className="h-4 w-4" />
+              Replied
+            </Button>
+          </div>
+        </div>
+        <Card className="bg-[#232323] border-[#505050]">
+          <CardHeader>
+            <CardTitle>No Solutions Yet</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-400">Solutions will appear here once they are submitted.</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
