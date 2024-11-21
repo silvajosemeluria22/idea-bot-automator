@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      orders: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          customer_email: string
+          id: string
+          metadata: Json | null
+          solution_id: string
+          stripe_payment_status: string | null
+          stripe_session_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          customer_email: string
+          id?: string
+          metadata?: Json | null
+          solution_id: string
+          stripe_payment_status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string
+          id?: string
+          metadata?: Json | null
+          solution_id?: string
+          stripe_payment_status?: string | null
+          stripe_session_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_solution_id_fkey"
+            columns: ["solution_id"]
+            isOneToOne: false
+            referencedRelation: "solutions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       solutions: {
         Row: {
           automation_suggestion: string | null
