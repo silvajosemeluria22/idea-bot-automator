@@ -1,12 +1,12 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 type Solution = {
   id: string;
   title: string;
   description: string;
+  email: string;
   automation_suggestion: string | null;
   premium_price: number | null;
   premium_time: number | null;
@@ -59,61 +59,41 @@ const Solution = () => {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="space-y-4">
           <h1 className="text-3xl font-bold text-white">{solution.title}</h1>
-          <p className="text-gray-400 whitespace-pre-wrap">{solution.description}</p>
-          {solution.automation_suggestion && (
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold text-white mb-2">Automation Suggestion</h2>
-              <p className="text-gray-400 whitespace-pre-wrap">{solution.automation_suggestion}</p>
-            </div>
-          )}
+          <p className="text-gray-400">{solution.email}</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6">
           {/* Free Plan */}
-          <Card className="bg-[#232323] border-[#505050]">
-            <CardHeader>
-              <CardTitle className="text-white">Free Plan</CardTitle>
-              <CardDescription>Basic automation suggestion</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-2xl font-bold text-white">$0</p>
-                <p className="text-gray-400">Delivery Time: Instant</p>
+          <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
+            <div className="text-emerald-500 mb-4">Free</div>
+            <p className="text-white whitespace-pre-wrap">{solution.automation_suggestion}</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Premium Plan */}
+            <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
+              <div className="text-emerald-500 mb-4">Premium</div>
+              <div className="flex items-center justify-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-gray-500 text-center mt-4">
+                This could take up to 24 hours, comeback later<br />
+                or check your email for notification.
+              </p>
+            </div>
 
-          {/* Premium Plan */}
-          {solution.premium_price && solution.premium_time && (
-            <Card className="bg-[#232323] border-[#505050]">
-              <CardHeader>
-                <CardTitle className="text-white">Premium Plan</CardTitle>
-                <CardDescription>Enhanced automation solution</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-white">${solution.premium_price}</p>
-                  <p className="text-gray-400">Delivery Time: {solution.premium_time} hours</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Pro Plan */}
-          {solution.pro_price && solution.pro_time && (
-            <Card className="bg-[#232323] border-[#505050]">
-              <CardHeader>
-                <CardTitle className="text-white">Pro Plan</CardTitle>
-                <CardDescription>Full custom implementation</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="text-2xl font-bold text-white">${solution.pro_price}</p>
-                  <p className="text-gray-400">Delivery Time: {solution.pro_time} hours</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            {/* Pro Plan */}
+            <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
+              <div className="text-emerald-500 mb-4">Pro</div>
+              <div className="flex items-center justify-center h-40">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-500"></div>
+              </div>
+              <p className="text-gray-500 text-center mt-4">
+                This could take up to 24 hours, comeback later<br />
+                or check your email for notification.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
