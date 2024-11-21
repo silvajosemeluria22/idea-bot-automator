@@ -15,8 +15,8 @@ const Metrics = () => {
     queryKey: ['kpi-data'],
     queryFn: async () => {
       const [solutionsCount, ordersCount, revenueData] = await Promise.all([
-        supabase.from('solutions').count(),
-        supabase.from('orders').count(),
+        supabase.from('solutions').select('*', { count: 'exact', head: true }),
+        supabase.from('orders').select('*', { count: 'exact', head: true }),
         supabase.from('orders')
           .select('amount')
           .eq('stripe_payment_status', 'succeeded')
