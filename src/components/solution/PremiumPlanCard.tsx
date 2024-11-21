@@ -62,50 +62,58 @@ export const PremiumPlanCard = ({
       <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6 relative min-h-[300px]">
         <div className="text-emerald-500 mb-4">Premium</div>
         <div className="space-y-4">
-          <p className="text-white">
-            Thank you, we are working on this, you will be notified by email once is completed.
-          </p>
-          {!solution.whatsapp_number && (
-            <div className="space-y-2">
+          {!solution.whatsapp_number ? (
+            <>
               <p className="text-white">
-                Prefer whatsapp? input your number bellow with country indicator
+                Thank you, we are working on this, you will be notified by email once is completed.
               </p>
-              <div className="flex gap-2">
-                <div className="flex-grow">
-                  <PhoneInput
-                    country={'us'}
-                    value={whatsapp}
-                    onChange={onWhatsappChange}
-                    inputStyle={{
-                      width: '100%',
-                      height: '40px',
-                      backgroundColor: '#1C1C1C',
-                      border: '1px solid #333333',
-                      color: 'white',
-                    }}
-                    dropdownStyle={{
-                      backgroundColor: '#1C1C1C',
-                      border: '1px solid #333333',
-                      color: 'white',
-                    }}
-                    buttonStyle={{
-                      backgroundColor: '#1C1C1C',
-                      border: '1px solid #333333',
-                    }}
-                  />
+              <div className="space-y-2">
+                <p className="text-white">
+                  Prefer whatsapp? input your number bellow with country indicator
+                </p>
+                <div className="flex gap-2">
+                  <div className="flex-grow">
+                    <PhoneInput
+                      country={'us'}
+                      value={whatsapp}
+                      onChange={onWhatsappChange}
+                      inputStyle={{
+                        width: '100%',
+                        height: '40px',
+                        backgroundColor: '#1C1C1C',
+                        border: '1px solid #333333',
+                        color: 'white',
+                      }}
+                      dropdownStyle={{
+                        backgroundColor: '#1C1C1C',
+                        border: '1px solid #333333',
+                        color: 'white',
+                      }}
+                      buttonStyle={{
+                        backgroundColor: '#1C1C1C',
+                        border: '1px solid #333333',
+                      }}
+                    />
+                  </div>
+                  <Button
+                    onClick={handleSaveWhatsapp}
+                    disabled={isSaving || !whatsapp}
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    {isSaving ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Check className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
-                <Button
-                  onClick={handleSaveWhatsapp}
-                  disabled={isSaving || !whatsapp}
-                  className="bg-emerald-600 hover:bg-emerald-700"
-                >
-                  {isSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Check className="h-4 w-4" />
-                  )}
-                </Button>
               </div>
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-[200px]">
+              <p className="text-white">
+                Thank you, we are working on this, you will be notified by email once is completed.
+              </p>
             </div>
           )}
           <p className="text-emerald-500 absolute bottom-6">Order Placed Successfully</p>
