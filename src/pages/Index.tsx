@@ -37,38 +37,47 @@ const Index = () => {
 
       if (insertError) throw insertError;
 
-      // Generate automation suggestion
-      const { data: automationData, error: automationError } = await supabase.functions.invoke('generate-automation', {
-        body: { description: problem }
-      });
-
-      if (automationError) throw automationError;
-
-      // Update solution with automation suggestion
-      const { error: updateError } = await supabase
-        .from('solutions')
-        .update({ 
-          automation_suggestion: automationData.suggestion 
-        })
-        .eq('id', solution.id);
-
-      if (updateError) throw updateError;
-
-      // Generate title using OpenAI
-      const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-title', {
-        body: { description: problem }
-      });
-
-      if (titleError) throw titleError;
-
-      // Update the solution with the generated title
-      await supabase
-        .from('solutions')
-        .update({ title: titleData.title })
-        .eq('id', solution.id);
-
-      // Redirect to solution page
+      // Redirect immediately after creating the initial record
       navigate(`/solution/${solution.id}`);
+
+      // Continue with OpenAI calls in the background
+      const generateContent = async () => {
+        try {
+          // Generate automation suggestion
+          const { data: automationData, error: automationError } = await supabase.functions.invoke('generate-automation', {
+            body: { description: problem }
+          });
+
+          if (automationError) throw automationError;
+
+          // Update solution with automation suggestion
+          await supabase
+            .from('solutions')
+            .update({ 
+              automation_suggestion: automationData.suggestion 
+            })
+            .eq('id', solution.id);
+
+          // Generate title using OpenAI
+          const { data: titleData, error: titleError } = await supabase.functions.invoke('generate-title', {
+            body: { description: problem }
+          });
+
+          if (titleError) throw titleError;
+
+          // Update the solution with the generated title
+          await supabase
+            .from('solutions')
+            .update({ title: titleData.title })
+            .eq('id', solution.id);
+
+        } catch (error) {
+          console.error('Error in background processing:', error);
+        }
+      };
+
+      // Execute the background processing
+      generateContent();
 
     } catch (error) {
       console.error('Error:', error);
