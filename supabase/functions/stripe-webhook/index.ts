@@ -44,25 +44,45 @@ serve(async (req) => {
   try {
     console.log('Processing webhook event:', event.type);
     
+    // Log the event first
+    const { error: logError } = await supabaseClient
+      .from('stripe_logs')
+      .insert({
+        event_type: event.type,
+        event_id: event.id,
+        payment_intent_id: event.data.object.payment_intent || event.data.object.id,
+        session_id: event.data.object.client_reference_id,
+        status: event.data.object.status,
+        amount: event.data.object.amount,
+        metadata: event.data.object.metadata,
+        raw_event: event.data.object
+      });
+
+    if (logError) {
+      console.error('Error logging stripe event:', logError);
+      throw logError;
+    }
+
+    // Handle specific events
     switch (event.type) {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
         console.log('Payment intent succeeded:', paymentIntent.id);
         
-        // Update order status in database
+        // Update order status
         const { error } = await supabaseClient
           .from('orders')
           .update({ 
             stripe_payment_status: 'succeeded',
             stripe_payment_captured: true,
+            payment_intent_id: paymentIntent.id,
             metadata: {
-              payment_intent_id: paymentIntent.id,
               payment_status: 'succeeded',
               captured: true,
               last_updated: new Date().toISOString(),
             }
           })
-          .eq('payment_intent_id', paymentIntent.id);
+          .eq('stripe_session_id', paymentIntent.metadata.session_id);
 
         if (error) {
           console.error('Error updating order:', error);
@@ -81,14 +101,14 @@ serve(async (req) => {
           .update({ 
             stripe_payment_status: 'failed',
             stripe_payment_captured: false,
+            payment_intent_id: paymentIntent.id,
             metadata: {
-              payment_intent_id: paymentIntent.id,
               payment_status: 'failed',
               captured: false,
               last_updated: new Date().toISOString(),
             }
           })
-          .eq('payment_intent_id', paymentIntent.id);
+          .eq('stripe_session_id', paymentIntent.metadata.session_id);
 
         if (error) {
           console.error('Error updating order:', error);
