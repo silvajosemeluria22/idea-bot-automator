@@ -57,12 +57,12 @@ const Solution = () => {
           email: solution.email,
           amount: solution.premium_price,
           title: solution.title,
+          solutionId: solution.id,
         },
       });
 
       if (error) throw error;
 
-      // Redirect to Stripe Checkout
       if (data?.url) {
         window.location.href = data.url;
       }
