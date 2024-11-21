@@ -45,8 +45,8 @@ const Solution = () => {
     },
   });
 
-  const { data: paidOrder } = useQuery({
-    queryKey: ["paidOrder", id],
+  const { data: paidOrders } = useQuery({
+    queryKey: ["paidOrders", id],
     queryFn: async () => {
       if (!id) return null;
 
@@ -54,12 +54,10 @@ const Solution = () => {
         .from("orders")
         .select()
         .eq("solution_id", id)
-        .eq("stripe_payment_status", "paid")
-        .single();
+        .eq("stripe_payment_status", "paid");
 
       if (error) {
-        if (error.code === 'PGRST116') return null;
-        console.error("Error fetching order:", error);
+        console.error("Error fetching orders:", error);
         throw error;
       }
 
@@ -116,6 +114,9 @@ const Solution = () => {
     );
   }
 
+  const hasPremiumOrder = paidOrders?.some(order => order.amount === solution.premium_price);
+  const hasProOrder = paidOrders?.some(order => order.amount === (solution.pro_price || 0) - (solution.discount || 0));
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -137,9 +138,9 @@ const Solution = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {solution && (
+            {!hasProOrder && (
               <PremiumPlanCard
-                paidOrder={paidOrder}
+                paidOrder={hasPremiumOrder ? paidOrders?.find(order => order.amount === solution.premium_price) : undefined}
                 solution={solution}
                 isProcessing={isProcessing}
                 whatsapp={whatsapp}
@@ -147,7 +148,12 @@ const Solution = () => {
                 onCheckout={handleCheckout}
               />
             )}
-            {solution && <ProPlanCard solution={solution} />}
+            <ProPlanCard 
+              solution={solution} 
+              paidOrder={hasProOrder ? paidOrders?.find(order => order.amount === (solution.pro_price || 0) - (solution.discount || 0)) : undefined}
+              whatsapp={whatsapp}
+              onWhatsappChange={setWhatsapp}
+            />
           </div>
         </div>
       </div>
