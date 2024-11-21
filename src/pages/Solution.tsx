@@ -1,7 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Skeleton } from "@/components/ui/skeleton";
 
 type Solution = {
   id: string;
@@ -38,11 +37,9 @@ const Solution = () => {
     },
     enabled: !!id,
     refetchInterval: (data) => {
-      // If we have both title and automation_suggestion, stop polling
       if (data?.title && data?.title !== "Generating title..." && data?.automation_suggestion) {
         return false;
       }
-      // Otherwise, refetch every 2 seconds
       return 2000;
     },
   });
@@ -50,18 +47,8 @@ const Solution = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-4 w-1/4" />
-          </div>
-          <div className="grid grid-cols-1 gap-6">
-            <Skeleton className="h-40" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Skeleton className="h-60" />
-              <Skeleton className="h-60" />
-            </div>
-          </div>
+        <div className="flex items-center justify-center h-[60vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-500"></div>
         </div>
       </div>
     );
