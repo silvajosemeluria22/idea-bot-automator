@@ -22,6 +22,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <div className="min-h-screen bg-[#1C1C1C]">
+          <Header />
           <Routes>
             <Route path="/admin/login" element={<Login />} />
             <Route path="/admin/dashboard" element={<Dashboard />}>
@@ -30,20 +31,8 @@ const App = () => (
               <Route path="solutions/:id" element={<SolutionView />} />
               <Route path="orders" element={<Orders />} />
             </Route>
-            <Route
-              path="/"
-              element={
-                <>
-                  <Header />
-                  <main>
-                    <Routes>
-                      <Route index element={<Index />} />
-                      <Route path="/solution/:id" element={<Solution />} />
-                    </Routes>
-                  </main>
-                </>
-              }
-            />
+            <Route path="/" element={<Index />} />
+            <Route path="/solution/:id" element={<Solution />} />
           </Routes>
         </div>
       </BrowserRouter>
