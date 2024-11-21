@@ -27,7 +27,7 @@ serve(async (req) => {
     
     // Get balance transactions from Stripe
     const transactions = await stripe.balanceTransactions.list({
-      limit: 100, // Adjust as needed
+      limit: 100,
     });
 
     console.log(`Found ${transactions.data.length} transactions`);
@@ -41,9 +41,12 @@ serve(async (req) => {
     if (ordersError) throw ordersError;
     
     const updates = [];
+    let updatedCount = 0;
     
     // Match transactions with orders and prepare updates
     for (const order of orders || []) {
+      if (!order.payment_intent_id) continue;
+      
       const transaction = transactions.data.find(t => 
         t.source === order.payment_intent_id
       );
@@ -74,11 +77,13 @@ serve(async (req) => {
 
       if (updateError) {
         console.error(`Error updating order ${update.id}:`, updateError);
+      } else {
+        updatedCount++;
       }
     }
 
     return new Response(
-      JSON.stringify({ updated: updates.length }),
+      JSON.stringify({ updated: updatedCount }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
