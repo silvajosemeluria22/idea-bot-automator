@@ -1,13 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { useState } from "react";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 type PremiumPlanProps = {
   paidOrder: any;
   solution: {
+    id: string;
     premium_price: number;
     premium_time: number;
+    whatsapp_number?: string;
   };
   isProcessing: boolean;
   whatsapp: string;
@@ -23,6 +29,36 @@ export const PremiumPlanCard = ({
   onWhatsappChange,
   onCheckout,
 }: PremiumPlanProps) => {
+  const { toast } = useToast();
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSaveWhatsapp = async () => {
+    if (!whatsapp) return;
+    
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('solutions')
+        .update({ whatsapp_number: whatsapp })
+        .eq('id', solution.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "WhatsApp number saved successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save WhatsApp number",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   if (paidOrder) {
     return (
       <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6 relative min-h-[300px]">
@@ -35,12 +71,42 @@ export const PremiumPlanCard = ({
             <p className="text-white">
               Prefer whatsapp? input your number bellow with country indicator
             </p>
-            <Input
-              value={whatsapp}
-              onChange={(e) => onWhatsappChange(e.target.value)}
-              placeholder="Whatsapp"
-              className="bg-[#1C1C1C] border-[#333333] text-white"
-            />
+            <div className="flex gap-2">
+              <div className="flex-grow">
+                <PhoneInput
+                  country={'us'}
+                  value={whatsapp}
+                  onChange={onWhatsappChange}
+                  inputStyle={{
+                    width: '100%',
+                    height: '40px',
+                    backgroundColor: '#1C1C1C',
+                    border: '1px solid #333333',
+                    color: 'white',
+                  }}
+                  dropdownStyle={{
+                    backgroundColor: '#1C1C1C',
+                    border: '1px solid #333333',
+                    color: 'white',
+                  }}
+                  buttonStyle={{
+                    backgroundColor: '#1C1C1C',
+                    border: '1px solid #333333',
+                  }}
+                />
+              </div>
+              <Button
+                onClick={handleSaveWhatsapp}
+                disabled={isSaving || !whatsapp}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
           <p className="text-emerald-500 absolute bottom-6">Order Placed Successfully</p>
         </div>

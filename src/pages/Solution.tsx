@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PremiumPlanCard } from "@/components/solution/PremiumPlanCard";
 import { ProPlanCard } from "@/components/solution/ProPlanCard";
 
@@ -38,6 +38,11 @@ const Solution = () => {
       if (error) {
         console.error("Error fetching solution:", error);
         throw error;
+      }
+
+      // Set initial whatsapp number if exists
+      if (data.whatsapp_number) {
+        setWhatsapp(data.whatsapp_number);
       }
 
       return data as Solution;
@@ -149,7 +154,7 @@ const Solution = () => {
               solution={solution}
               isProcessing={isProcessing}
               whatsapp={whatsapp}
-              onWhatsappChange={(value) => setWhatsapp(value)}
+              onWhatsappChange={setWhatsapp}
               onCheckout={handleCheckout}
             />
             <ProPlanCard solution={solution} />
