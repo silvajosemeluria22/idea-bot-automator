@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Table,
@@ -10,7 +10,9 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ExternalLink, RefreshCw } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 
 type Order = {
   id: string;
@@ -27,6 +29,9 @@ type Order = {
 };
 
 const Orders = () => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: async () => {
@@ -40,6 +45,36 @@ const Orders = () => {
 
       if (error) throw error;
       return data as Order[];
+    },
+  });
+
+  const refreshPaymentStatus = useMutation({
+    mutationFn: async (orderId: string) => {
+      const response = await fetch('/functions/v1/refresh-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to refresh payment status');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+      toast({
+        title: "Payment status refreshed",
+        description: "The order has been updated with the latest payment status.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error refreshing payment status",
+        description: error.message,
+        variant: "destructive",
+      });
     },
   });
 
@@ -87,7 +122,18 @@ const Orders = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-white">Orders</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-white">Orders</h1>
+        <Button
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-orders"] })}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh List
+        </Button>
+      </div>
       
       <div className="rounded-md border border-[#505050]">
         <Table>
@@ -98,7 +144,7 @@ const Orders = () => {
               <TableHead>Customer</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Stripe</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -122,7 +168,7 @@ const Orders = () => {
                     {order.stripe_payment_status || 'pending'}
                   </Badge>
                 </TableCell>
-                <TableCell>
+                <TableCell className="space-x-2">
                   {order.stripe_session_id && (
                     <a
                       href={`https://dashboard.stripe.com/test/payments/${order.stripe_session_id}`}
@@ -134,6 +180,16 @@ const Orders = () => {
                       View in Stripe
                     </a>
                   )}
+                  <Button
+                    onClick={() => refreshPaymentStatus.mutate(order.id)}
+                    variant="ghost"
+                    size="sm"
+                    className="gap-1"
+                    disabled={refreshPaymentStatus.isPending}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${refreshPaymentStatus.isPending ? 'animate-spin' : ''}`} />
+                    Refresh
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
