@@ -45,68 +45,56 @@ serve(async (req) => {
     console.log('Processing webhook event:', event.type);
     
     switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object;
-        console.log('Checkout session completed:', session.id);
+      case 'payment_intent.succeeded': {
+        const paymentIntent = event.data.object;
+        console.log('Payment intent succeeded:', paymentIntent.id);
         
-        // Check if we've already processed this session
-        const { data: existingOrder } = await supabaseClient
+        // Update order status in database
+        const { error } = await supabaseClient
           .from('orders')
-          .select('*')
-          .eq('stripe_session_id', session.id)
-          .single();
+          .update({ 
+            stripe_payment_status: 'succeeded',
+            stripe_payment_captured: true,
+            metadata: {
+              payment_intent_id: paymentIntent.id,
+              payment_status: 'succeeded',
+              captured: true,
+              last_updated: new Date().toISOString(),
+            }
+          })
+          .eq('payment_intent_id', paymentIntent.id);
 
-        if (existingOrder) {
-          console.log('Order already exists for session:', session.id);
-          // If order exists, just update its status
-          const paymentIntent = await stripe.paymentIntents.retrieve(session.payment_intent as string);
-          
-          const { error: updateError } = await supabaseClient
-            .from('orders')
-            .update({ 
-              stripe_payment_status: paymentIntent.status,
-              stripe_payment_captured: paymentIntent.status === 'succeeded' && paymentIntent.amount_received > 0,
-              metadata: {
-                ...existingOrder.metadata,
-                payment_status: paymentIntent.status,
-                captured: paymentIntent.status === 'succeeded' && paymentIntent.amount_received > 0,
-                last_updated: new Date().toISOString(),
-              }
-            })
-            .eq('id', existingOrder.id);
-
-          if (updateError) throw updateError;
-          break;
+        if (error) {
+          console.error('Error updating order:', error);
+          throw error;
         }
-
-        // If we get here, something went wrong with the initial order creation
-        console.error('No order found for completed session:', session.id);
+        
         break;
       }
       
-      case 'checkout.session.expired': {
-        const session = event.data.object;
-        console.log('Checkout session expired:', session.id);
+      case 'payment_intent.payment_failed': {
+        const paymentIntent = event.data.object;
+        console.log('Payment intent failed:', paymentIntent.id);
         
         const { error } = await supabaseClient
           .from('orders')
           .update({ 
-            stripe_payment_status: 'expired',
+            stripe_payment_status: 'failed',
             stripe_payment_captured: false,
             metadata: {
-              session_id: session.id,
-              expired_at: new Date().toISOString(),
+              payment_intent_id: paymentIntent.id,
+              payment_status: 'failed',
               captured: false,
+              last_updated: new Date().toISOString(),
             }
           })
-          .eq('stripe_session_id', session.id);
+          .eq('payment_intent_id', paymentIntent.id);
 
         if (error) {
-          console.error('Error updating expired order:', error);
+          console.error('Error updating order:', error);
           throw error;
         }
         
-        console.log('Order marked as expired');
         break;
       }
     }
