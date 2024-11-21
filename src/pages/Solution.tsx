@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 type Solution = {
   id: string;
@@ -22,6 +23,7 @@ const Solution = () => {
   const { id } = useParams();
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [whatsapp, setWhatsapp] = useState("");
 
   const { data: solution, isLoading } = useQuery({
     queryKey: ["solution", id],
@@ -50,6 +52,30 @@ const Solution = () => {
       }
       return false;
     },
+  });
+
+  // Query to check if there's a paid order for this solution
+  const { data: paidOrder } = useQuery({
+    queryKey: ["paidOrder", id],
+    queryFn: async () => {
+      if (!id) return null;
+
+      const { data, error } = await supabase
+        .from("orders")
+        .select()
+        .eq("solution_id", id)
+        .eq("stripe_payment_status", "paid")
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') return null; // No paid order found
+        console.error("Error fetching order:", error);
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!id,
   });
 
   const handleCheckout = async () => {
@@ -125,7 +151,21 @@ const Solution = () => {
             {/* Premium Plan */}
             <div className="bg-[#1C1C1C] rounded-lg border border-[#333333] p-6">
               <div className="text-emerald-500 mb-4">Premium</div>
-              {solution?.premium_price && solution?.premium_time ? (
+              {paidOrder ? (
+                <div className="space-y-4">
+                  <p className="text-white">Thank you, we are working on this, you will be notified by email once is completed.</p>
+                  <div className="space-y-2">
+                    <p className="text-white">Prefer whatsapp ? input your number bellow with country indicator</p>
+                    <Input
+                      value={whatsapp}
+                      onChange={(e) => setWhatsapp(e.target.value)}
+                      placeholder="Whatsapp"
+                      className="bg-[#1C1C1C] border-[#333333] text-white"
+                    />
+                  </div>
+                  <p className="text-emerald-500">Order Placed Successfully</p>
+                </div>
+              ) : solution?.premium_price && solution?.premium_time ? (
                 <div className="space-y-4">
                   <p className="text-white">
                     A more detailed solution that includes a comprehensive diagram illustrating the solution architecture, and a step-by-step action plan for implementation. This package is designed for clients who have the resources to implement the solution on their own but need a detailed roadmap.
