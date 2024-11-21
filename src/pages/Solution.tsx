@@ -19,15 +19,18 @@ const Solution = () => {
   const { data: solution, isLoading } = useQuery({
     queryKey: ["solution", id],
     queryFn: async () => {
+      if (!id) throw new Error('No solution ID provided');
+
       const { data, error } = await supabase
         .from("solutions")
-        .select("*")
+        .select()
         .eq("id", id)
         .single();
 
       if (error) throw error;
       return data as Solution;
     },
+    enabled: !!id,
   });
 
   if (isLoading) {
