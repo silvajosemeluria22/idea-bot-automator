@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import Stripe from "https://esm.sh/stripe@12.18.0?target=deno"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
 const stripe = new Stripe(Deno.env.get('stripe_development_secret_key') as string, {
   apiVersion: '2023-10-16',
@@ -28,12 +27,13 @@ serve(async (req) => {
     
     let event;
     try {
+      // Notice the change here: Using Stripe.createSubtleCryptoProvider() instead of stripe.createSubtleCryptoProvider()
       event = await stripe.webhooks.constructEventAsync(
         body,
         signature!,
         Deno.env.get('Stripe_webhook_secret')!,
         undefined,
-        stripe.createSubtleCryptoProvider()
+        Stripe.createSubtleCryptoProvider()
       );
     } catch (err) {
       console.error('Error verifying webhook signature:', err);
