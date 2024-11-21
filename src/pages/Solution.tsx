@@ -115,7 +115,9 @@ const Solution = () => {
   }
 
   const hasPremiumOrder = paidOrders?.some(order => order.amount === solution.premium_price);
-  const hasProOrder = paidOrders?.some(order => order.amount === (solution.pro_price || 0) - (solution.discount || 0));
+  const hasProOrder = paidOrders?.some(order => 
+    order.amount === (solution.pro_price || 0) - (solution.discount || 0)
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -148,12 +150,14 @@ const Solution = () => {
                 onCheckout={handleCheckout}
               />
             )}
-            <ProPlanCard 
-              solution={solution} 
-              paidOrder={hasProOrder ? paidOrders?.find(order => order.amount === (solution.pro_price || 0) - (solution.discount || 0)) : undefined}
-              whatsapp={whatsapp}
-              onWhatsappChange={setWhatsapp}
-            />
+            {!hasPremiumOrder && (
+              <ProPlanCard 
+                solution={solution} 
+                paidOrder={hasProOrder ? paidOrders?.find(order => order.amount === (solution.pro_price || 0) - (solution.discount || 0)) : undefined}
+                whatsapp={whatsapp}
+                onWhatsappChange={setWhatsapp}
+              />
+            )}
           </div>
         </div>
       </div>
