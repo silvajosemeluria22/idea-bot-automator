@@ -40,7 +40,8 @@ const Solution = () => {
     },
     enabled: !!id,
     refetchInterval: (data) => {
-      if (data?.title !== "Generating title..." && data?.automation_suggestion) {
+      if (!data) return 2000;
+      if (data.title !== "Generating title..." && data.automation_suggestion) {
         return false;
       }
       return 2000;
