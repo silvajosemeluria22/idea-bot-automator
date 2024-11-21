@@ -47,36 +47,61 @@ serve(async (req) => {
     
     // Find the corresponding order based on the session ID or payment intent ID
     let orderId = null;
-    if (event.data.object.client_reference_id) {
-      const { data: order } = await supabaseClient
+    let orderUpdate = {};
+
+    if (event.type === 'checkout.session.completed') {
+      const session = event.data.object;
+      console.log('Processing completed checkout session:', session.id);
+
+      // Find order by session ID
+      const { data: order, error: orderError } = await supabaseClient
         .from('orders')
         .select('id')
-        .eq('stripe_session_id', event.data.object.client_reference_id)
+        .eq('stripe_session_id', session.id)
         .single();
-      
-      if (order) {
-        orderId = order.id;
+
+      if (orderError) {
+        console.error('Error finding order:', orderError);
+        throw orderError;
       }
-    } else if (event.data.object.payment_intent) {
-      const { data: order } = await supabaseClient
-        .from('orders')
-        .select('id')
-        .eq('payment_intent_id', event.data.object.payment_intent)
-        .single();
-      
+
       if (order) {
         orderId = order.id;
+        orderUpdate = {
+          payment_intent_id: session.payment_intent,
+          stripe_payment_status: session.payment_status,
+          stripe_payment_captured: true,
+          metadata: {
+            ...order.metadata,
+            payment_status: session.payment_status,
+            payment_intent_id: session.payment_intent,
+            last_updated: new Date().toISOString(),
+          }
+        };
+
+        // Update the order with payment information
+        const { error: updateError } = await supabaseClient
+          .from('orders')
+          .update(orderUpdate)
+          .eq('id', orderId);
+
+        if (updateError) {
+          console.error('Error updating order:', updateError);
+          throw updateError;
+        }
+
+        console.log('Successfully updated order:', orderId);
       }
     }
 
-    // Log the event with the order ID if found
+    // Log the stripe event
     const { error: logError } = await supabaseClient
       .from('stripe_logs')
       .insert({
         event_type: event.type,
         event_id: event.id,
-        payment_intent_id: event.data.object.payment_intent || event.data.object.id,
-        session_id: event.data.object.client_reference_id,
+        payment_intent_id: event.data.object.payment_intent,
+        session_id: event.data.object.id,
         order_id: orderId,
         status: event.data.object.status,
         amount: event.data.object.amount,
@@ -90,93 +115,6 @@ serve(async (req) => {
     }
 
     console.log('Successfully logged event to stripe_logs');
-
-    // Handle specific events
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        console.log('Checkout session completed:', event.data.object.id);
-        
-        if (orderId) {
-          const session = event.data.object;
-          const { error } = await supabaseClient
-            .from('orders')
-            .update({ 
-              stripe_payment_status: 'succeeded',
-              stripe_payment_captured: true,
-              payment_intent_id: session.payment_intent,
-              metadata: {
-                payment_status: 'succeeded',
-                captured: true,
-                last_updated: new Date().toISOString(),
-              }
-            })
-            .eq('id', orderId);
-
-          if (error) {
-            console.error('Error updating order:', error);
-            throw error;
-          }
-          console.log('Successfully updated order status for session:', session.id);
-        }
-        break;
-      }
-      
-      case 'payment_intent.succeeded': {
-        const paymentIntent = event.data.object;
-        console.log('Payment intent succeeded:', paymentIntent.id);
-        
-        if (orderId) {
-          const { error } = await supabaseClient
-            .from('orders')
-            .update({ 
-              stripe_payment_status: 'succeeded',
-              stripe_payment_captured: true,
-              payment_intent_id: paymentIntent.id,
-              metadata: {
-                payment_status: 'succeeded',
-                captured: true,
-                last_updated: new Date().toISOString(),
-              }
-            })
-            .eq('id', orderId);
-
-          if (error) {
-            console.error('Error updating order:', error);
-            throw error;
-          }
-          console.log('Successfully updated order status for payment:', paymentIntent.id);
-        }
-        break;
-      }
-      
-      case 'payment_intent.payment_failed': {
-        const paymentIntent = event.data.object;
-        console.log('Payment intent failed:', paymentIntent.id);
-        
-        if (orderId) {
-          const { error } = await supabaseClient
-            .from('orders')
-            .update({ 
-              stripe_payment_status: 'failed',
-              stripe_payment_captured: false,
-              payment_intent_id: paymentIntent.id,
-              metadata: {
-                payment_status: 'failed',
-                captured: false,
-                last_updated: new Date().toISOString(),
-              }
-            })
-            .eq('id', orderId);
-
-          if (error) {
-            console.error('Error updating order:', error);
-            throw error;
-          }
-          console.log('Successfully updated order status as failed for payment:', paymentIntent.id);
-        }
-        break;
-      }
-    }
 
     return new Response(JSON.stringify({ received: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
