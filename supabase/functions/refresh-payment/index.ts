@@ -74,7 +74,7 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify(paymentData), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     });
